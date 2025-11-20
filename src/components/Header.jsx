@@ -9,7 +9,9 @@ import {
   Image,
   DatabaseBackup,
   Palette,
-  Info
+  Info,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle.jsx'
 import { UpdatePrompt } from './UpdatePrompt.jsx'
@@ -20,6 +22,7 @@ import { useVersionCheck } from '../hooks/useVersionCheck.js'
 export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false, onToggleCollapse }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
   const [internalCollapsed, setInternalCollapsed] = React.useState(false)
+  const [isDevInfoExpanded, setIsDevInfoExpanded] = React.useState(false)
   
   // 时间格式转换函数 - 将UTC时间转换为北京时间
   const formatVersionBuildDate = (dateString) => {
@@ -88,6 +91,11 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       id: '#icons',
       label: '图标',
       icon: Palette,
+    },
+    {
+      id: '#about',
+      label: '关于',
+      icon: Info,
     },    
   ]
 
@@ -224,38 +232,77 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
             {!sidebarCollapsed && (
               <div className="mt-4">
                 {/* 版本信息卡片 */}
-                <div className="bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-lg p-3 border border-primary-200 dark:border-primary-700/50">
-                  <div className="space-y-2">
-                    {/* 后端版本 */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">后端</span>
-                      <div className="flex items-center gap-1">
-                        <span className={cn(
-                          "text-xs font-semibold px-2 py-0.5 rounded cursor-pointer hover:shadow-md transition-all",
-                          hasBackendUpdate
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400' 
-                            : 'bg-white dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                        )}
-                        onClick={() => checkForUpdates()}
-                        title="点击检查更新">
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <div className="space-y-3">
+                    {/* 标题和版本 */}
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">版本信息</h3>
+                        <p className="text-xs font-mono text-blue-600 dark:text-blue-400 mt-1">
                           {backendVersion || '获取中...'}
-                        </span>
-                        {hasBackendUpdate && (
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span>
+                        在线
+                      </span>
+                    </div>
+                    
+                    {/* 开发人员信息 - 可展开/折叠 */}
+                    {isDevInfoExpanded ? (
+                      <div className="animate-in slide-in-from-top-2 duration-200">
+                        <div 
+                          className="flex justify-between items-center cursor-pointer pb-2"
+                          onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
+                        >
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">开发人员信息</span>
+                          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div className="text-xs">
+                            <p className="text-gray-500 dark:text-gray-400">前端</p>
+                            <p className="font-medium text-gray-800 dark:text-gray-200">DongShu</p>
+                          </div>
+                          <div className="text-xs">
+                            <p className="text-gray-500 dark:text-gray-400">后端</p>
+                            <p className="font-medium text-gray-800 dark:text-gray-200">onlyLTY</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div 
+                        className="flex items-center cursor-pointer py-1"
+                        onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
+                      >
+                        <span className="text-xs text-gray-600 dark:text-gray-400">显示开发人员</span>
+                        <ChevronRight className="h-3 w-3 text-gray-500 dark:text-gray-400 ml-1" />
+                      </div>
+                    )}
+                    
+                    {/* 操作和更新信息 */}
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        最后检查: {(new Date()).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      
+                      {hasBackendUpdate && (
+                        <div className="flex items-center">
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-1 animate-pulse"></span>
                           <button
                             onClick={() => setShowUpdatePrompt(true)}
-                            className="text-xs font-medium text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-1.5 py-0.5 rounded animate-pulse hover:bg-yellow-200 dark:hover:bg-yellow-900/40 transition-colors cursor-pointer"
-                            title="点击查看更新">
-                            更新
+                            className="text-xs font-medium text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300"
+                          >
+                            有更新
                           </button>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
-                    {/* 后端构建时间 */}
+                    {/* 构建时间 */}
                     {buildDate && (
-                      <div className="pt-2 border-t border-primary-200 dark:border-primary-700/50">
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          构建：{formatVersionBuildDate(buildDate)}
+                      <div className="pt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400" title={formatVersionBuildDate(buildDate)}>
+                          构建: {formatVersionBuildDate(buildDate)}
                         </p>
                       </div>
                     )}

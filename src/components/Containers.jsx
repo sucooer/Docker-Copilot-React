@@ -4,46 +4,39 @@ import {
   Square, 
   RotateCcw, 
   RefreshCw, 
-  Edit3, 
-  Download,
   Upload,
-  Trash2,
-  MoreVertical,
   Clock,
   Calendar,
   Package,
-  CheckCircle,
-  AlertCircle,
   X,
-  Info,
-  List,
-  Grid
+  Info
 } from 'lucide-react'
 import { containerAPI, progressAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getImageLogo } from '../config/imageLogos.js'
 
 export function Containers() {
   const queryClient = useQueryClient()
   const [selectedContainer, setSelectedContainer] = useState(null)
-  const [showActions, setShowActions] = useState(null)
   // 添加批量操作相关的状态
   const [selectedContainers, setSelectedContainers] = useState([])
   const [isBatchMode, setIsBatchMode] = useState(false)
   // 添加操作状态跟踪
   const [containerActions, setContainerActions] = useState({}) // 跟踪每个容器的操作状态
   const [updateTasks, setUpdateTasks] = useState({}) // 跟踪更新任务
-  // 添加视图模式状态
-  const [viewMode, setViewMode] = useState(() => {
-    return localStorage.getItem('containerViewMode') || 'list'
+
+  // 自定义确认弹窗状态
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    onCancel: null,
+    type: 'info' // info, warning, danger
   })
 
-  // 切换视图模式
-  const toggleViewMode = (mode) => {
-    setViewMode(mode)
-    localStorage.setItem('containerViewMode', mode)
-  }
+
 
   // 使用React Query获取容器列表
   const { data: containers = [], isLoading, refetch } = useQuery({
@@ -62,24 +55,21 @@ export function Containers() {
 
   const handleContainerAction = async (containerId, action) => {
     try {
-      setShowActions(null)
-      
       // 设置操作状态为加载中
       setContainerActions(prev => ({
         ...prev,
         [containerId]: { action, loading: true }
       }))
       
-      let response
       switch (action) {
         case 'start':
-          response = await containerAPI.startContainer(containerId)
+          await containerAPI.startContainer(containerId)
           break
         case 'stop':
-          response = await containerAPI.stopContainer(containerId)
+          await containerAPI.stopContainer(containerId)
           break
         case 'restart':
-          response = await containerAPI.restartContainer(containerId)
+          await containerAPI.restartContainer(containerId)
           break
         default:
           break
@@ -131,15 +121,43 @@ export function Containers() {
         delete newState[containerId]
         return newState
       })
-      console.error(`操作失败: ${error.response?.data?.msg || error.message}`)
+      
+      // 增加超时错误的处理
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        console.error(`操作超时，请稍后手动刷新页面查看操作结果`)
+      } else {
+        console.error(`操作失败: ${error.response?.data?.msg || error.message}`)
+      }
     }
   }
 
   // 批量操作处理函数
   const handleBatchAction = async (action) => {
     try {
+      // Filter out containers using the protected image
+      const protectedImage = '0nlylty/dockercopilot';
+      const filteredContainers = selectedContainers.filter(containerId => {
+        const container = containers.find(c => c.id === containerId);
+        return container && !container.usingImage.includes(protectedImage);
+      });
+
+      // If any containers were filtered out, show a message
+      if (filteredContainers.length < selectedContainers.length) {
+        const protectedCount = selectedContainers.length - filteredContainers.length;
+        // 使用自定义弹窗替换console.log
+        setConfirmModal({
+          isOpen: true,
+          title: '操作提示',
+          message: `跳过了 ${protectedCount} 个使用受保护镜像的容器`,
+          onConfirm: () => setConfirmModal({ isOpen: false }),
+          onCancel: null,
+          type: 'info'
+        });
+      }
+
+      // Use filtered containers for the operations
       // 为所有选中的容器设置加载状态
-      selectedContainers.forEach(containerId => {
+      filteredContainers.forEach(containerId => {
         setContainerActions(prev => ({
           ...prev,
           [containerId]: { action, loading: true }
@@ -152,7 +170,7 @@ export function Containers() {
           if (!oldData) return oldData
           
           return oldData.map(container => {
-            if (selectedContainers.includes(container.id)) {
+            if (filteredContainers.includes(container.id)) {
               let newStatus = container.status
               switch (action) {
                 case 'start':
@@ -175,7 +193,7 @@ export function Containers() {
       }
       
       // 对每个选中的容器执行操作
-      for (const containerId of selectedContainers) {
+      for (const containerId of filteredContainers) {
         try {
           const container = containers.find(c => c.id === containerId)
           
@@ -247,6 +265,16 @@ export function Containers() {
           return newState
         })
       })
+      
+      // 使用自定义弹窗显示错误信息
+      setConfirmModal({
+        isOpen: true,
+        title: '操作失败',
+        message: '批量操作失败: ' + (error.response?.data?.msg || error.message || '未知错误'),
+        onConfirm: () => setConfirmModal({ isOpen: false }),
+        onCancel: null,
+        type: 'danger'
+      });
     }
   }
 
@@ -308,7 +336,7 @@ export function Containers() {
             return newState
           })
           await refetch()
-          alert('容器更新完成')
+
         }
       } else {
         throw new Error(response.data.msg || '更新失败')
@@ -320,7 +348,32 @@ export function Containers() {
         delete newState[containerId]
         return newState
       })
-      alert(`更新失败: ${error.response?.data?.msg || error.message}`)
+      
+      // 增加超时错误的处理
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        console.error(`更新操作已提交，但连接超时。请稍后手动刷新页面查看操作结果`)
+        // 即使超时也触发轮询，因为操作可能仍在进行中
+        // 这里我们不知道taskID，所以无法启动轮询，只能提示用户稍后查看
+      } else {
+        // 针对名称冲突提供特定的解决方案
+        let errorMessage = error.response?.data?.msg || error.message;
+        if (errorMessage.includes('重命名') || errorMessage.includes('name conflict') || errorMessage.includes('名称冲突')) {
+          errorMessage += '\n\n检测到容器名称冲突问题，建议解决方案：\n' +
+                         '1. 手动删除或重命名冲突的容器\n' +
+                         '2. 使用不同的容器名称进行更新\n' +
+                         '3. 先停止并重命名当前容器，再进行更新操作';
+        }
+        
+        // 使用自定义弹窗显示错误信息
+        setConfirmModal({
+          isOpen: true,
+          title: '更新失败',
+          message: errorMessage,
+          onConfirm: () => setConfirmModal({ isOpen: false }),
+          onCancel: null,
+          type: 'danger'
+        });
+      }
     }
   }
 
@@ -392,7 +445,7 @@ export function Containers() {
                           status === 'finished' ||
                           progressMsg.includes('完成') ||
                           progressMsg.includes('成功') ||
-                          (data.code === 200 && (data.msg === 'success' || data.msg === '操作成功'))
+                          (data.code === 200 && (data.msg === 'success' || data.msg === '操作成功' || data.msg === '更新成功'))
 
         // 检查是否失败
         const isFailed = status === 'failed' || 
@@ -415,7 +468,10 @@ export function Containers() {
           // 任务失败 - 立即停止轮询
           console.log('容器更新失败，停止轮询')
           clearPollState()
-          console.error(`❌ 更新失败: ${data.data?.error || data.msg || '更新失败'}`)
+          // 添加更详细的错误信息
+          const errorMsg = data.data?.error || data.data?.message || data.msg || '更新失败'
+          console.error(`❌ 更新失败: ${errorMsg}`)
+          
           return // 确保不再继续执行
         }
 
@@ -436,11 +492,14 @@ export function Containers() {
         } else {
           clearPollState()
           console.error('⏱️ 更新超时，请检查容器状态')
+
         }
       } catch (error) {
         console.error('查询进度失败:', error)
         clearPollState()
         console.error(`❌ 更新失败: ${error.response?.data?.msg || error.message}`)
+        // 显示网络错误或其他异常情况的友好提示
+        
       }
     }
 
@@ -466,22 +525,18 @@ export function Containers() {
     }
   }
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
-      running: { label: '运行中', className: 'badge-success' },
-      stopped: { label: '已停止', className: 'badge-error' },
-      exited: { label: '已退出', className: 'badge-error' },
-      restarting: { label: '重启中', className: 'badge-warning' },
-      paused: { label: '已暂停', className: 'badge-info' }
-    }
 
-    const config = statusConfig[status?.toLowerCase()] || { label: status, className: 'badge-info' }
+
+  // 获取状态指示器颜色
+  const getStatusIndicatorColor = (status) => {
+    const statusConfig = {
+      running: 'bg-green-500',
+      stopped: 'bg-red-500',
+      restarting: 'bg-yellow-500',
+      paused: 'bg-blue-500'
+    }
     
-    return (
-      <span className={cn('badge', config.className)}>
-        {config.label}
-      </span>
-    )
+    return statusConfig[status?.toLowerCase()] || 'bg-gray-500'
   }
 
   if (isLoading) {
@@ -512,6 +567,56 @@ export function Containers() {
           100% { background-position: 200% 0; }
         }
       `}</style>
+      
+      {/* 自定义确认弹窗 */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                {confirmModal.title}
+              </h3>
+              <button 
+                onClick={() => {
+                  if (confirmModal.onCancel) confirmModal.onCancel();
+                  setConfirmModal({ isOpen: false });
+                }}
+                className="text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="px-6 py-4">
+              <p className="text-gray-600 dark:text-gray-400">
+                {confirmModal.message}
+              </p>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  if (confirmModal.onCancel) confirmModal.onCancel();
+                  setConfirmModal({ isOpen: false });
+                }}
+                className="btn-secondary"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  if (confirmModal.onConfirm) confirmModal.onConfirm();
+                }}
+                className={cn(
+                  "btn-primary",
+                  confirmModal.type === 'danger' && "bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+                )}
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* 页面标题和操作 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
         <div>
@@ -530,33 +635,7 @@ export function Containers() {
             >
               批量操作
             </button>
-            {/* 视图切换按钮 */}
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
-              <button
-                onClick={() => toggleViewMode('list')}
-                className={cn(
-                  "px-3 py-2 text-sm",
-                  viewMode === 'list'
-                    ? "bg-primary-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                )}
-                title="列表视图"
-              >
-                <List className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => toggleViewMode('grid')}
-                className={cn(
-                  "px-3 py-2 text-sm",
-                  viewMode === 'grid'
-                    ? "bg-primary-600 text-white"
-                    : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                )}
-                title="网格视图"
-              >
-                <Grid className="h-4 w-4" />
-              </button>
-            </div>
+
             <button 
               className="btn-primary"
               onClick={() => refetch()}
@@ -619,19 +698,12 @@ export function Containers() {
       </div>
 
       {/* 容器列表 */}
-      <div className={cn(
-        viewMode === 'grid' 
-          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" 
-          : "space-y-4"
-      )}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {containers.map((container) => (
-          <div key={container.id} className={cn(
-            "card relative overflow-hidden",
-            viewMode === 'grid' ? "p-4" : "p-6"
-          )}>
+          <div key={container.id} className="card relative overflow-hidden group transition-all duration-200 hover:shadow-lg border border-gray-200 dark:border-gray-700 rounded-2xl p-6">
             {/* 背景进度条 */}
             {containerActions[container.id]?.loading && containerActions[container.id]?.action === 'update' && (
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden">
                 <div 
                   className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-primary-500/30 via-primary-400/30 to-primary-500/30 transition-all duration-500 ease-out"
                   style={{
@@ -652,27 +724,22 @@ export function Containers() {
                 </div>
               </div>
             )}
-            <div className={cn(
-              "relative z-10",
-              viewMode === 'grid' 
-                ? "flex flex-col space-y-3" 
-                : "flex items-center justify-between gap-4"
-            )}>
+            <div className="relative z-10 flex items-center justify-between gap-4">
               {/* 左侧：选择框和图标 */}
-              <div className={cn(
-                "flex items-center",
-                viewMode === 'grid' ? "space-x-3" : "space-x-3"
-              )}>
+              <div className="flex items-start space-x-4">
                 {isBatchMode && (
-                  <div className="flex-shrink-0 mt-0.5">
+                  <div className="flex-shrink-0 mt-1.5">
                     <input
                       type="checkbox"
                       checked={selectedContainers.includes(container.id)}
                       onChange={() => toggleContainerSelection(container.id)}
-                      className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500"
+                      className="h-5 w-5 text-primary-600 rounded focus:ring-primary-500 border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                     />
                   </div>
                 )}
+                
+                {/* 图标和状态指示器 */}
+                <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
                     {(() => {
                       // 获取镜像logo数据
@@ -682,137 +749,112 @@ export function Containers() {
 
                       // 如果容器没有自定义图标，则查找镜像图标
                       if (!iconUrl && container.usingImage) {
-                      // 首先尝试使用内置logo配置
-                      const builtInLogo = getImageLogo(container.usingImage, imageLogos);
-                      if (builtInLogo) {
-                        iconUrl = builtInLogo;
-                      } else {
-                        // 如果没有内置logo，则使用原来的匹配逻辑
-                        for (const [imageName, logoUrl] of Object.entries(imageLogos)) {
-                          // 检查容器使用的镜像是否包含镜像名称
-                          // 镜像名称格式可能是 "repository" 或 "repository:tag"
-                          if (container.usingImage.startsWith(imageName) || 
-                              container.usingImage.includes(`${imageName}:`)) {
-                            iconUrl = logoUrl;
-                            break;
+                        // 首先尝试使用内置logo配置
+                        const builtInLogo = getImageLogo(container.usingImage, imageLogos);
+                        if (builtInLogo) {
+                          iconUrl = builtInLogo;
+                        } else {
+                          // 如果没有内置logo，则使用原来的匹配逻辑
+                          for (const [imageName, logoUrl] of Object.entries(imageLogos)) {
+                            // 检查容器使用的镜像是否包含镜像名称
+                            // 镜像名称格式可能是 "repository" 或 "repository:tag"
+                            if (container.usingImage.startsWith(imageName) || 
+                                container.usingImage.includes(`${imageName}:`)) {
+                              iconUrl = logoUrl;
+                              break;
+                            }
                           }
                         }
                       }
-                    }
-                    
-                    // 根据图标URL显示相应内容
-                    if (iconUrl) {
-                      return (
-                        <img 
-                          src={iconUrl} 
-                          alt={container.name} 
-                          className="h-10 w-10 rounded-lg object-cover"
-                          onError={(e) => {
-                            // 如果图片加载失败，显示默认图标
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = `
-                              <div class="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                                </svg>
-                              </div>
-                            `;
-                          }}
-                        />
-                      );
-                    } else {
-                      return (
-                        <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                          <Package className="h-6 w-6 text-white" />
-                        </div>
-                      );
-                    }
-                  })()}
+                     
+                      // 根据图标URL显示相应内容
+                      if (iconUrl) {
+                        return (
+                          <img 
+                            src={iconUrl} 
+                            alt={container.name} 
+                            className="h-14 w-14 rounded-2xl object-cover shadow-md"
+                            onError={(e) => {
+                              // 如果图片加载失败，显示默认图标
+                              e.target.style.display = 'none';
+                              e.target.parentElement.innerHTML = `
+                                <div class="h-14 w-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-md">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7 text-white">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                  </svg>
+                                </div>
+                              `;
+                            }}
+                          />
+                        );
+                      } else {
+                        return (
+                          <div className="h-14 w-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-md">
+                            <Package className="h-7 w-7 text-white" />
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
+                  
+                  {/* 状态指示器竖线 */}
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <div className={cn(
+                      "w-1 h-14 rounded-full",
+                      getStatusIndicatorColor(container.status)
+                    )}></div>
+                  </div>
                 </div>
               </div>
                 
-                {/* 中间：容器信息（垂直排列在列表视图） */}
-                <div className={cn(
-                  "flex-1 min-w-0",
-                  viewMode === 'grid' ? "flex flex-col space-y-3" : "flex flex-col justify-center gap-1"
-                )}>
+              {/* 中间：容器信息 */}
+              <div className="flex-1 min-w-0 flex items-start gap-4">
+                <div className="flex flex-col justify-center gap-1.5 text-left">
                   <div className="flex items-center gap-2">
                     <h3 
-                      className={cn(
-                        "font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:underline",
-                        viewMode === 'grid' ? "text-base" : "text-sm"
-                      )}
+                      className="font-semibold text-gray-900 dark:text-white truncate cursor-pointer hover:underline text-lg"
                       onClick={() => setSelectedContainer(container)}
                     >
                       {container.name}
                     </h3>
                     {container.haveUpdate && (
-                      <span className="badge-warning text-xs flex-shrink-0">可更新</span>
+                      <span className="badge-warning text-xs flex-shrink-0 px-2 py-0.5 rounded-full">可更新</span>
                     )}
                   </div>
                   
-                  <p className={cn(
-                    "text-gray-500 dark:text-gray-400 truncate",
-                    viewMode === 'grid' ? "text-sm" : "text-xs"
-                  )}>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                     {container.usingImage}
                   </p>
                   
-                  {viewMode === 'list' && container.status === 'running' && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      运行时间: {container.runningTime}
-                    </p>
+                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                    <Calendar className="h-3 w-3" />
+                    <span>创建: {new Date(container.createTime).toLocaleDateString()}</span>
+                  </div>
+                  
+                  {container.status === 'running' && (
+                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                      <Clock className="h-3 w-3" />
+                      <span>运行: {container.runningTime}</span>
+                    </div>
                   )}
                   
                   {containerActions[container.id]?.loading && containerActions[container.id]?.progress && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 truncate">
-                      {containerActions[container.id].progress}
+                    <p className="text-xs text-blue-600 dark:text-blue-400 truncate flex items-center gap-1">
+                      <RefreshCw className="h-3 w-3 animate-spin" />
+                      <span>{containerActions[container.id].progress}</span>
                     </p>
                   )}
-                  
-                  {viewMode === 'grid' && (
-                    <div className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>创建: {new Date(container.createTime).toLocaleDateString()}</span>
-                      </div>
-                      {container.status === 'running' && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>运行: {container.runningTime}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
+              </div>
 
               {/* 右侧：状态和操作按钮 */}
-              <div className={cn(
-                "flex items-center flex-shrink-0",
-                viewMode === 'grid' 
-                  ? "flex-col gap-3 pt-3 border-t border-gray-200 dark:border-gray-700 w-full"
-                  : "gap-2 flex-row items-center"
-              )}>
-                {/* 状态徽章 */}
-                {viewMode === 'list' && (
-                  <div className="flex-shrink-0">
-                    {getStatusBadge(container.status)}
-                  </div>
-                )}
-                {viewMode === 'grid' && (
-                  <div className="w-full">
-                    {getStatusBadge(container.status)}
-                  </div>
-                )}
+              <div className="flex items-start flex-shrink-0 gap-2 flex-row">
                 
                 {/* 操作按钮 */}
                 {!isBatchMode && (
-                  <div className={cn(
-                    "flex items-center flex-shrink-0",
-                    viewMode === 'grid' ? "flex-wrap gap-2 w-full" : "gap-1 flex-row"
-                  )}>
+                  <div className="grid grid-cols-2 gap-2">
                     {containerActions[container.id]?.loading ? (
-                      <div className="flex items-center space-x-2 px-4 py-2 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                      <div className="col-span-2 flex items-center justify-center space-x-2 px-3 py-1.5 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
                         <RefreshCw className="h-4 w-4 animate-spin text-primary-600 dark:text-primary-400" />
                         <span className="text-sm font-medium text-primary-600 dark:text-primary-400">
                           {containerActions[container.id].action === 'start' && '启动中'}
@@ -827,63 +869,48 @@ export function Containers() {
                           <>
                             <button
                               onClick={() => handleContainerAction(container.id, 'stop')}
-                              className={cn(
-                                "group relative text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all duration-200 flex items-center",
-                                viewMode === 'grid' ? "px-2 py-1.5 space-x-1" : "px-3 py-2 space-x-1.5"
-                              )}
+                              className="group relative text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200 flex items-center shadow-sm hover:shadow px-3 py-2 space-x-1 justify-center"
                               title="停止容器"
                             >
-                              <Square className="h-4 w-4" />
-                              <span className="text-xs font-medium">停止</span>
+                              <Square className="h-5 w-5" />
+                              <span className="text-sm font-medium">停止</span>
                             </button>
                             <button
                               onClick={() => handleContainerAction(container.id, 'restart')}
-                              className={cn(
-                                "group relative text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 flex items-center",
-                                viewMode === 'grid' ? "px-2 py-1.5 space-x-1" : "px-3 py-2 space-x-1.5"
-                              )}
+                              className="group relative text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-xl transition-all duration-200 flex items-center shadow-sm hover:shadow px-3 py-2 space-x-1 justify-center"
                               title="重启容器"
                             >
-                              <RotateCcw className="h-4 w-4" />
-                              <span className="text-xs font-medium">重启</span>
+                              <RotateCcw className="h-5 w-5" />
+                              <span className="text-sm font-medium">重启</span>
                             </button>
                           </>
                         ) : (
                           <button
                             onClick={() => handleContainerAction(container.id, 'start')}
-                            className={cn(
-                              "group relative text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-all duration-200 flex items-center",
-                              viewMode === 'grid' ? "px-2 py-1.5 space-x-1" : "px-3 py-2 space-x-1.5"
-                            )}
+                            className="group relative text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-xl transition-all duration-200 flex items-center shadow-sm hover:shadow px-3 py-2 space-x-1 justify-center"
                             title="启动容器"
                           >
-                            <Play className="h-4 w-4" />
-                            <span className="text-xs font-medium">启动</span>
+                            <Play className="h-5 w-5" />
+                            <span className="text-sm font-medium">启动</span>
                           </button>
                         )}
 
                         <button
                           onClick={() => handleUpdateContainer(container.id)}
-                          className={cn(
-                            "group relative text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-all duration-200 flex items-center",
-                            viewMode === 'grid' ? "px-2 py-1.5 space-x-1" : "px-3 py-2 space-x-1.5"
-                          )}
+                          className="group relative text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-xl transition-all duration-200 flex items-center shadow-sm hover:shadow px-3 py-2 space-x-1 justify-center"
                           title="更新容器"
                         >
-                          <Upload className="h-4 w-4" />
-                          <span className="text-xs font-medium">更新</span>
+                          <Upload className="h-5 w-5" />
+                          <span className="text-sm font-medium">更新</span>
                         </button>
 
                         <button
                           onClick={() => setSelectedContainer(container)}
-                          className={cn(
-                            "group relative text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center",
-                            viewMode === 'grid' ? "px-2 py-1.5 space-x-1" : "px-3 py-2 space-x-1.5"
-                          )}
+                          className="group relative text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all duration-200 flex items-center shadow-sm hover:shadow px-3 py-2 space-x-1 justify-center"
                           title="查看详情"
                         >
-                          <Info className="h-4 w-4" />
-                          <span className="text-xs font-medium">详情</span>
+                          <Info className="h-5 w-5" />
+                          <span className="text-sm font-medium">详情</span>
                         </button>
                       </>
                     )}
@@ -948,8 +975,6 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
           if (updatedContainer) {
             // 检查是否有镜像图标
             const imageLogos = JSON.parse(localStorage.getItem('docker_copilot_image_logos') || '{}');
-            // 查找匹配的镜像图标
-            let matchedImageKey = null;
             
             // 如果容器没有自定义图标，则查找镜像图标
             if (!updatedContainer.iconUrl) {
@@ -992,7 +1017,11 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
       setCurrentAction(action);
       
       // 调用传入的onAction函数执行实际操作
-      await onAction(container.id, action);
+      if (action === 'update') {
+        await onUpdate(container.id);
+      } else {
+        await onAction(container.id, action);
+      }
       
       // 无效化查询以触发重新获取数据
       await queryClient.invalidateQueries(['containers'])
@@ -1007,10 +1036,10 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
   };
 
   const handleRename = async () => {
-    if (name !== container.name) {
+    if (name !== currentContainer.name) {
       try {
         setIsRenaming(true)
-        console.log(`重命名容器: ${container.name} -> ${name}`)
+        console.log(`重命名容器: ${currentContainer.name} -> ${name}`)
 
         await onRename(container.id, name)
 
@@ -1019,6 +1048,8 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
 
         // 更新当前容器状态
         setCurrentContainer({ ...currentContainer, name: name })
+        // 同时更新表单中的名称
+        setName(name);
 
         console.log('✅ 容器重命名成功')
         setIsRenaming(false)
@@ -1031,12 +1062,12 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
 
   const handleSave = async () => {
     // 如果镜像tag发生变化，则更新容器
-    if (imageNameAndTag !== container.usingImage) {
+    if (imageNameAndTag !== currentContainer.usingImage) {
       try {
         setIsUpdating(true)
 
-        console.log(`开始更新容器镜像: ${container.name}`)
-        console.log(`原镜像: ${container.usingImage}`)
+        console.log(`开始更新容器镜像: ${currentContainer.name}`)
+        console.log(`原镜像: ${currentContainer.usingImage}`)
         console.log(`新镜像: ${imageNameAndTag}`)
 
         // 直接调用API更新容器
@@ -1053,10 +1084,15 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
           const taskID = response.data.data?.taskID
 
           if (taskID) {
-            // 如果返回了taskID，关闭弹窗，让用户在列表中看到进度
+            // 如果返回了taskID，我们需要触发进度轮询
             console.log('更新任务已创建，taskID:', taskID)
-            await queryClient.invalidateQueries(['containers'])
+            
+            // 关闭弹窗
             onClose()
+            
+            // 触发父组件中的进度轮询
+            onUpdate(container.id)
+            
             console.log('✅ 容器更新任务已启动，请在列表中查看进度')
           } else {
             // 没有taskID，更新完成
@@ -1071,60 +1107,32 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
         setIsUpdating(false)
       } catch (error) {
         console.error('更新容器镜像失败:', error)
-        console.error(`❌ 更新失败: ${error.response?.data?.msg || error.message}`)
+        // 增加超时错误的处理
+        if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+          console.error(`更新操作已提交，但连接超时。请稍后手动刷新页面查看操作结果`)
+          // 即使超时也关闭弹窗并触发轮询，因为操作可能仍在进行中
+          onClose()
+          onUpdate(container.id)
+        }
         setIsUpdating(false)
       }
     }
   }
 
-  // 保存图标URL
-  const saveIconUrl = async () => {
-    try {
-      setIsUpdating(true)
-      
-      // 模拟API调用延迟
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // 创建更新后的容器对象
-      const updatedContainerData = { ...container, iconUrl: iconUrl }
-      
-      // 更新当前容器状态
-      setCurrentContainer(updatedContainerData)
-      
-      // 更新父组件中的容器列表状态
-      // 注意：实际项目中这里应该调用API保存到服务器
-      // 我们通过更新React Query缓存来模拟保存效果
-      const containersQueryData = queryClient.getQueryData(['containers'])
-      if (containersQueryData) {
-        const updatedContainers = containersQueryData.map(c => 
-          c.id === container.id ? updatedContainerData : c
-        )
-        queryClient.setQueryData(['containers'], updatedContainers)
-      }
-      
-      setIsUpdating(false)
-    } catch (error) {
-      console.error('保存图标URL失败:', error)
-      setIsUpdating(false)
-    }
-  }
 
-  // 获取状态徽章组件
-  const getStatusBadge = (status) => {
+
+
+
+  // 获取状态指示器颜色
+  const getStatusIndicatorColor = (status) => {
     const statusConfig = {
-      running: { label: '运行中', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-      stopped: { label: '已停止', className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
-      restarting: { label: '重启中', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
-      paused: { label: '已暂停', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' }
+      running: 'bg-green-500',
+      stopped: 'bg-red-500',
+      restarting: 'bg-yellow-500',
+      paused: 'bg-blue-500'
     }
     
-    const config = statusConfig[status] || { label: status, className: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400' }
-    
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.className}`}>
-        {config.label}
-      </span>
-    )
+    return statusConfig[status?.toLowerCase()] || 'bg-gray-500'
   }
 
   // 获取容器图标 - 与列表显示逻辑一致
@@ -1157,13 +1165,13 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
         <img 
           src={iconUrl} 
           alt={currentContainer.name} 
-          className="h-10 w-10 rounded-lg object-cover"
+          className="h-12 w-12 rounded-xl object-cover"
           onError={(e) => {
             e.target.style.display = 'none';
             const parent = e.target.parentElement;
             if (parent) {
               parent.innerHTML = `
-                <div class="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -1177,7 +1185,7 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
       );
     } else {
       return (
-        <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+        <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
           <Package className="h-6 w-6 text-white" />
         </div>
       );
@@ -1186,7 +1194,7 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
         {/* 弹窗头部 */}
         <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
           <div className="flex justify-between items-center">
@@ -1194,13 +1202,19 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">容器详情</h3>
               <div className="flex items-center mt-1">
                 {getContainerIcon()}
+                {/* 状态指示器竖线 */}
+                <div className="flex flex-col items-center justify-center h-full ml-3">
+                  <div className={cn(
+                    "w-1 h-8 rounded-full",
+                    getStatusIndicatorColor(currentContainer.status)
+                  )}></div>
+                </div>
                 <div className="ml-3">
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {currentContainer.name}
                   </span>
                   <div className="flex items-center mt-1">
-                    {getStatusBadge(currentContainer.status)}
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {currentContainer.id.substring(0, 12)}
                     </span>
                   </div>
@@ -1218,78 +1232,6 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
         
         {/* 弹窗内容 */}
         <div className="px-6 py-4 space-y-5">
-          {/* 容器操作按钮 */}
-          <div className="flex space-x-3">
-            {currentContainer.status === 'running' ? (
-              <>
-                <button 
-                  onClick={() => handleContainerAction('stop')}
-                  disabled={isActionProcessing || isUpdating}
-                  className={`flex-1 py-2 text-sm rounded-lg transition-colors flex items-center justify-center ${
-                    isActionProcessing && currentAction === 'stop'
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
-                      : 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600'
-                  }`}
-                >
-                  {isActionProcessing && currentAction === 'stop' ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                      停止中
-                    </>
-                  ) : (
-                    <>
-                      <Square className="h-4 w-4 mr-1" />
-                      停止
-                    </>
-                  )}
-                </button>
-                <button 
-                  onClick={() => handleContainerAction('restart')}
-                  disabled={isActionProcessing || isUpdating}
-                  className={`flex-1 py-2 text-sm rounded-lg transition-colors flex items-center justify-center ${
-                    isActionProcessing && currentAction === 'restart'
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
-                      : 'bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-500 dark:hover:bg-yellow-600'
-                  }`}
-                >
-                  {isActionProcessing && currentAction === 'restart' ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                      重启中
-                    </>
-                  ) : (
-                    <>
-                      <RotateCcw className="h-4 w-4 mr-1" />
-                      重启
-                    </>
-                  )}
-                </button>
-              </>
-            ) : (
-              <button 
-                onClick={() => handleContainerAction('start')}
-                disabled={isActionProcessing || isUpdating}
-                className={`flex-1 py-2 text-sm rounded-lg transition-colors flex items-center justify-center ${
-                  isActionProcessing && currentAction === 'start'
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
-                    : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600'
-                }`}
-              >
-                {isActionProcessing && currentAction === 'start' ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                    启动中
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-4 w-4 mr-1" />
-                    启动
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-          
           {/* 容器名称 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1305,14 +1247,19 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
               />
               <button
                 onClick={handleRename}
-                disabled={isRenaming || name === container.name || isActionProcessing || isUpdating}
+                disabled={isRenaming || (name === currentContainer.name) || isActionProcessing || isUpdating}
                 className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  isRenaming || name === container.name
+                  isRenaming || (name === currentContainer.name)
                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
                     : 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600'
                 }`}
               >
-                {isRenaming ? '...' : '重命名'}
+                {isRenaming ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                    重命名中
+                  </>
+                ) : '重命名'}
               </button>
             </div>
           </div>
@@ -1333,9 +1280,9 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
               />
               <button
                 onClick={handleSave}
-                disabled={isUpdating || imageNameAndTag === container.usingImage || !imageNameAndTag.trim()}
+                disabled={isUpdating || (imageNameAndTag === currentContainer.usingImage) || !imageNameAndTag.trim()}
                 className={`px-3 py-2 text-sm rounded-lg transition-colors flex items-center ${
-                  isUpdating || imageNameAndTag === container.usingImage || !imageNameAndTag.trim()
+                  isUpdating || (imageNameAndTag === currentContainer.usingImage) || !imageNameAndTag.trim()
                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
                     : 'bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600'
                 }`}
@@ -1354,12 +1301,11 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
               修改镜像后点击"更换镜像"按钮将重新创建容器
             </p>
           </div>
-          
         </div>
         
-        {/* 弹窗底部 */}
+        {/* 弹窗底部操作按钮 */}
         <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-700/30">
-          <div className="flex justify-end">
+          <div className="flex justify-between">
             <button
               onClick={onClose}
               disabled={isActionProcessing || isUpdating}
@@ -1367,6 +1313,99 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
             >
               关闭
             </button>
+            
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => onUpdate(container.id)}
+                disabled={isActionProcessing || isUpdating}
+                className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                  isActionProcessing && currentAction === 'update'
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                    : 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600'
+                }`}
+              >
+                {isActionProcessing && currentAction === 'update' ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                    更新中
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-1" />
+                    更新
+                  </>
+                )}
+              </button>
+              
+              {currentContainer.status === 'running' ? (
+                <>
+                  <button 
+                    onClick={() => handleContainerAction('stop')}
+                    disabled={isActionProcessing || isUpdating}
+                    className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                      isActionProcessing && currentAction === 'stop'
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                        : 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600'
+                    }`}
+                  >
+                    {isActionProcessing && currentAction === 'stop' ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                        停止中
+                      </>
+                    ) : (
+                      <>
+                        <Square className="h-4 w-4 mr-1" />
+                        停止
+                      </>
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => handleContainerAction('restart')}
+                    disabled={isActionProcessing || isUpdating}
+                    className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                      isActionProcessing && currentAction === 'restart'
+                        ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                        : 'bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-500 dark:hover:bg-yellow-600'
+                    }`}
+                  >
+                    {isActionProcessing && currentAction === 'restart' ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                        重启中
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="h-4 w-4 mr-1" />
+                        重启
+                      </>
+                    )}
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => handleContainerAction('start')}
+                  disabled={isActionProcessing || isUpdating}
+                  className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                    isActionProcessing && currentAction === 'start'
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                      : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600'
+                  }`}
+                >
+                  {isActionProcessing && currentAction === 'start' ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                      启动中
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-4 w-4 mr-1" />
+                      启动
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

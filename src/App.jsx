@@ -5,6 +5,7 @@ import { Containers } from './components/Containers.jsx'
 import { Images } from './components/Images.jsx'
 import { Backups } from './components/Backups.jsx'
 import { Icons } from './components/Icons.jsx'
+import { About } from './components/About.jsx'
 import { ThemeProvider } from './hooks/useTheme.jsx'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cn } from './utils/cn.js'
@@ -88,6 +89,8 @@ function AppContent() {
         return <Icons />
       case '#backups':
         return <Backups />
+      case '#about':
+        return <About />
       default:
         return <Containers />
     }

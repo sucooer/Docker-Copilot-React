@@ -23,6 +23,8 @@ export const builtInImageLogos = {
   "imgzcq/fndesk": "https://raw.dongshu.fun:99/dc/718.png",
   "qiaokes/fntv-record-view": "https://raw.dongshu.fun:99/dc/718.png",
   "easychen/cookiecloud": "https://raw.dongshu.fun:99/dc/100.png",
+  "codercom/code-server": "https://icon.xiaoge.org/images/website/vscode.png",
+  "iyuucn/iyuuplus": "https://icon.xiaoge.org/images/docker/IYUU.png",
   "gdy666/lucky": "https://raw.dongshu.fun:99/dc/4.png"  
 };
 

@@ -1,4 +1,6 @@
 import React from 'react'
+import wechatImg from '../assets/wechat.jpg'
+import alipayImg from '../assets/alipay.jpg'
 
 export function About() {
   return (
@@ -43,7 +45,7 @@ export function About() {
                 <div className="flex flex-col items-center">
                   <div className="rounded-xl overflow-hidden w-40 h-40 flex items-center justify-center bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500">
                     <img 
-                      src="/wechat.jpg" 
+                      src={wechatImg} 
                       alt="微信赞赏码" 
                       className="w-full h-full object-contain"
                     />
@@ -53,7 +55,7 @@ export function About() {
                 <div className="flex flex-col items-center">
                   <div className="rounded-xl overflow-hidden w-40 h-40 flex items-center justify-center bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500">
                     <img 
-                      src="/alipay.jpg" 
+                      src={alipayImg} 
                       alt="支付宝赞赏码" 
                       className="w-full h-full object-contain"
                     />

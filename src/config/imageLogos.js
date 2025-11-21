@@ -7,11 +7,11 @@
 export const builtInImageLogos = {
   "xylplm/media-saber": "https://icon.xiaoge.org/images/docker/MediaSaber.png",
   "jxxghp/moviepilot-v2": "https://raw.dongshu.fun:99/dc/146.png",
+  "0nlylty/dockercopilot": "https://icon.xiaoge.org/images/docker/DockerCopilot-3.png",
   "mtphotos/mt-photos": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
   "kqstone/mt-photos-insightface-unofficial": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
   "mtphotos/mt-photos-ai": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
   "corentinth/it-tools": "https://raw.dongshu.fun:99/dc/IT-Tools_w7z24.webp",
-  "0nlylty/dockercopilot": "https://icon.xiaoge.org/images/docker/DockerCopilot-3.png",
   "xream/sub-store": "https://raw.dongshu.fun:99/dc/Sub-Store.webp",
   "nyanmisaka/jellyfin": "https://raw.dongshu.fun:99/dc/132.png",
   "redis": "https://raw.dongshu.fun:99/dc/165.png",

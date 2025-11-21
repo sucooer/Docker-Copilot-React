@@ -13,7 +13,7 @@ if [ $# -eq 0 ]; then
   DIST_DIR="/app/dist"
   PORT="${PORT:-12713}"
   START_SERVER=true
-  CONFIG_DIR="/app/src/config"
+  CONFIG_DIR="/app/dist/config"
   IMAGE_CONFIG_DIR="/app/dist/config"
 else
   # 本地配置模式
@@ -50,51 +50,15 @@ if [ ! -f "${DIST_DIR}/index.html" ]; then
   exit 1
 fi
 
-# 初始化配置目录
-init_config_dir() {
-  local host_config_dir="$1"
-  local image_config_dir="$2"
-  
-  # 检查宿主机挂载的目录是否存在
-  if [ ! -d "$host_config_dir" ]; then
-    echo "⚠ Warning: Host config directory $host_config_dir not found"
-    return 0
-  fi
-  
-  # 检查宿主机目录是否为空
-  if [ -z "$(ls -A "$host_config_dir")" ]; then
-    echo "✓ Host config directory is empty, initializing with image config files..."
-    
-    # 检查镜像配置目录是否存在且不为空
-    if [ -d "$image_config_dir" ] && [ -n "$(ls -A "$image_config_dir")" ]; then
-      echo "  Copying config files from image to host directory..."
-      # 复制到宿主机挂载的目录
-      cp -r "$image_config_dir"/* "$host_config_dir"/ 2>/dev/null || echo "  No files to copy or copy failed"
-      echo "✓ Config files copied successfully"
-    else
-      echo "⚠ Warning: Image config directory $image_config_dir not found or is empty"
-    fi
-  else
-    echo "✓ Host config directory already contains files, skipping initialization"
-  fi
-}
+# 配置文件已内置到镜像中，无需初始化
+echo "✓ Config files are built into the image"
 
-# 在 Docker 模式下初始化配置目录
-if [ "$START_SERVER" = "true" ]; then
-  # 检查是否挂载了宿主机目录（通过检查目录是否可写）
-  if [ -w "/app/src" ]; then
-    init_config_dir "/app/src/config" "/app/dist/config"
-  fi
-fi
-
-# 检查配置目录
-if [ ! -d "$CONFIG_DIR" ]; then
-  echo "⚠ Warning: Config directory $CONFIG_DIR not found"
-fi
-
-# 检查配置目录中的图片目录
-if [ -d "$CONFIG_DIR" ] && [ ! -d "$CONFIG_DIR/images" ]; then
-  echo "⚠ Warning: Image directory $CONFIG_DIR/images not found"
+# 检查配置目录（现在在dist/config中）
+CONFIG_DIR_CHECK="/app/dist/config"
+if [ ! -d "$CONFIG_DIR_CHECK" ]; then
+  echo "⚠ Warning: Config directory $CONFIG_DIR_CHECK not found"
+else
+  echo "✓ Config directory found at $CONFIG_DIR_CHECK"
 fi
 
 # 在 index.html 中注入 API 配置

@@ -6,24 +6,24 @@
 
 export const builtInImageLogos = {
   "xylplm/media-saber": "https://icon.xiaoge.org/images/docker/MediaSaber.png",
-  "jxxghp/moviepilot-v2": "/config/images/146.png",
+  "jxxghp/moviepilot-v2": "https://raw.dongshu.fun:99/dc/146.png",
   "mtphotos/mt-photos": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
   "kqstone/mt-photos-insightface-unofficial": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
   "mtphotos/mt-photos-ai": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
-  "corentinth/it-tools": "/config/images/IT-Tools_w7z24.webp",
+  "corentinth/it-tools": "https://raw.dongshu.fun:99/dc/IT-Tools_w7z24.webp",
   "0nlylty/dockercopilot": "https://icon.xiaoge.org/images/docker/DockerCopilot-3.png",
-  "xream/sub-store": "/config/images/Sub-Store.webp",
-  "nyanmisaka/jellyfin": "/config/images/132.png",
-  "redis": "/config/images/165.png",
-  "postgres": "/config/images/159.png",
-  "hslr/sun-panel": "/config/images/175.png",
+  "xream/sub-store": "https://raw.dongshu.fun:99/dc/Sub-Store.webp",
+  "nyanmisaka/jellyfin": "https://raw.dongshu.fun:99/dc/132.png",
+  "redis": "https://raw.dongshu.fun:99/dc/165.png",
+  "postgres": "https://raw.dongshu.fun:99/dc/159.png",
+  "hslr/sun-panel": "https://raw.dongshu.fun:99/dc/175.png",
   "whyour/qinglong": "https://qn.whyour.cn/favicon.svg",
-  "linuxserver/transmission": "/config/images/189.png",
-  "linuxserver/qbittorrent": "/config/images/QBittorrent_Q41Q0.webp",
-  "imgzcq/fndesk": "/config/images/718.png",
-  "qiaokes/fntv-record-view": "/config/images/718.png",
-  "easychen/cookiecloud": "/config/images/100.png",
-  "gdy666/lucky": "/config/images/4.png"  
+  "linuxserver/transmission": "https://raw.dongshu.fun:99/dc/189.png",
+  "linuxserver/qbittorrent": "https://raw.dongshu.fun:99/dc/QBittorrent_Q41Q0.webp",
+  "imgzcq/fndesk": "https://raw.dongshu.fun:99/dc/718.png",
+  "qiaokes/fntv-record-view": "https://raw.dongshu.fun:99/dc/718.png",
+  "easychen/cookiecloud": "https://raw.dongshu.fun:99/dc/100.png",
+  "gdy666/lucky": "https://raw.dongshu.fun:99/dc/4.png"  
 };
 
 // 获取镜像的logo URL
@@ -55,7 +55,7 @@ export const hasBuiltInLogo = (imageName) => {
   return builtInImageLogos[baseImageName] !== undefined;
 };
 
-// src/config/images 文件夹中的可用图片文件列表
+// srchttps://raw.dongshu.fun:99/dc 文件夹中的可用图片文件列表
 export const availableImageFiles = [
   "100.png", "132.png", "146.png", "159.png", "165.png", "17.png", 
   "175.png", "189.png", "4.png", "718.png", "IT-Tools_w7z24.webp", 
@@ -64,7 +64,7 @@ export const availableImageFiles = [
 
 // 快速映射函数：将图片文件名映射到完整的URL路径
 export const mapImageFile = (fileName) => {
-  return `/config/images/${fileName}`;
+  return `https://raw.dongshu.fun:99/dc/${fileName}`;
 };
 
 // 批量映射函数：通过图片文件名快速创建镜像logo映射

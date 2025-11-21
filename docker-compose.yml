@@ -10,8 +10,7 @@ services:
       - PORT=12713
     depends_on:
       - backend
-    volumes:
-      - ./src/config:/app/src/config:rw  # 挂载配置目录（读写模式）
+
     networks:
       - app-network
 

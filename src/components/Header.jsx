@@ -101,13 +101,32 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
 
   return (
     <>
-      {/* 移动端菜单按钮 */}
-      <button
-        onClick={() => setIsMobileMenuOpen(true)}
-        className="lg:hidden fixed top-3 left-3 z-30 p-2.5 sm:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow active:scale-95"
-      >
-        <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-300" />
-      </button>
+      {/* 顶部导航栏 */}
+      <div className="fixed top-0 left-0 right-0 lg:hidden h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 sm:px-4 z-40 shadow-sm">
+        {/* 左侧：菜单按钮 */}
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors active:scale-95"
+          title="打开菜单"
+        >
+          <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-300" />
+        </button>
+
+        {/* 右侧：主题切换和退出登录 */}
+        <div className="flex items-center gap-1">
+          <ThemeToggle collapsed={false} />
+          <button
+            onClick={onLogout}
+            className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors active:scale-95"
+            title="退出登录"
+          >
+            <LogOut className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* 添加顶部导航栏的占位符 */}
+      <div className="lg:hidden h-14" />
 
       {/* 侧边栏遮罩 */}
       {isMobileMenuOpen && (
@@ -123,49 +142,35 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
           "fixed lg:static inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-lg lg:shadow-none transform transition-all duration-300 ease-in-out flex flex-col",
           sidebarCollapsed ? "w-20" : "w-64 sm:w-72 md:w-64",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          "max-h-screen overflow-y-auto"
+          "max-h-screen overflow-y-auto lg:h-auto",
+          "lg:top-0 top-14"
         )}
       >
         <div className="flex flex-col h-full">
           {/* 头部 */}
           <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-            <div className={cn(
-              "flex items-center w-full",
-              sidebarCollapsed ? "justify-center" : "justify-between"
-            )}>
-              {/* Logo区域 - 点击可收起/展开 */}
-              <button
-                onClick={handleToggleCollapse}
-                className={cn(
-                  "flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer group active:scale-95",
-                  sidebarCollapsed ? "p-2" : "space-x-2 sm:space-x-3 p-2 -m-2"
-                )}
-                title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
-              >
-                <div className="flex-shrink-0">
-                  <img 
-                    {...LOGO_CONFIG}
-                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
-                  />
-                </div>
-                {!sidebarCollapsed && (
-                  <div className="text-left transition-all duration-300 min-w-0">
-                    <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">Docker Copilot</h1>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">容器管理平台</p>
-                  </div>
-                )}
-              </button>
-
-              {/* 移动端关闭按钮 */}
-              {!sidebarCollapsed && (
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 active:scale-90 transition-transform"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+            {/* Logo区域 - 点击可收起/展开 */}
+            <button
+              onClick={handleToggleCollapse}
+              className={cn(
+                "flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer group active:scale-95",
+                sidebarCollapsed ? "p-2" : "space-x-2 sm:space-x-3 p-2 -m-2"
               )}
-            </div>
+              title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
+            >
+              <div className="flex-shrink-0">
+                <img 
+                  {...LOGO_CONFIG}
+                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
+                />
+              </div>
+              {!sidebarCollapsed && (
+                <div className="text-left transition-all duration-300 min-w-0">
+                  <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">Docker Copilot</h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">容器管理平台</p>
+                </div>
+              )}
+            </button>
           </div>
 
           {/* 导航菜单 */}
@@ -200,8 +205,8 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
             </ul>
           </nav>
 
-          {/* 底部 */}
-          <div className={cn("border-t border-gray-200 dark:border-gray-700 flex-shrink-0", sidebarCollapsed ? "p-2" : "p-3 sm:p-4")}>
+          {/* 底部 - 侧边栏中的操作区 (桌面端显示) */}
+          <div className={cn("border-t border-gray-200 dark:border-gray-700 flex-shrink-0 hidden lg:block", sidebarCollapsed ? "p-2" : "p-3 sm:p-4")}>
             {/* 操作按钮区域 */}
             <div className={cn(
               "flex items-center gap-2",
@@ -314,6 +319,8 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
           </div>
         </div>
       </aside>
+
+
 
       {/* 版本更新提示弹窗 */}
       <UpdatePrompt

@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
-import { LOGO_BASE64 } from './assets/logo.js'
+import logoImg from './assets/DockerCopilot-logo.png'
 
 // 设置浏览器 favicon
 const setFavicon = () => {
@@ -16,7 +16,7 @@ const setFavicon = () => {
   const link = document.createElement('link')
   link.type = 'image/png'
   link.rel = 'icon'
-  link.href = LOGO_BASE64
+  link.href = logoImg
 
   // 添加到 head
   document.head.appendChild(link)

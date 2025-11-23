@@ -47,7 +47,7 @@ export function UpdatePrompt({
           {/* 内容 */}
           <div className="px-6 py-4">
             {/* 版本信息 */}
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-4">
               {hasBackendUpdate && (
                 <div className="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700/50">
                   <span className="text-sm text-gray-600 dark:text-gray-400">后端版本</span>
@@ -61,7 +61,7 @@ export function UpdatePrompt({
             </div>
 
             {/* 提示文本 */}
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700/50">
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700/50">
               <p className="text-sm text-blue-800 dark:text-blue-300">
                 {hasBackendUpdate
                   ? '检测到后端有新版本可用。建议您立即更新以获得最新功能和安全补丁。'

@@ -6,7 +6,7 @@ export function About() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* 头部信息 */}
-      <div className="card rounded-3xl p-6 sm:p-8 mb-6 text-center bg-gradient-to-br from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20">
+      <div className="card rounded-3xl p-6 sm:p-8 mb-4 text-center bg-gradient-to-br from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Docker Copilot</h1>
         <p className="text-gray-600 dark:text-gray-400">一个简洁优雅的Docker容器管理工具</p>
       </div>
@@ -49,12 +49,12 @@ export function About() {
         <div className="card p-6 sm:p-8 rounded-2xl border-2 border-primary-200 dark:border-primary-800 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-900/30 hover:shadow-lg transition-all">
           <div className="text-center">
             <h2 className="text-xl font-semibold text-primary-900 dark:text-primary-200 mb-2">最后的最后</h2>
-            <p className="text-primary-800 dark:text-primary-300 mb-6">
+            <p className="text-primary-800 dark:text-primary-300 mb-4">
               如果您用的愉快的话，可以请我喝一瓶快乐水吗？您的支持是我持续维护项目的动力！
             </p>
             
             {/* 赞赏码 */}
-            <div className="grid grid-cols-2 gap-6 mt-8">
+            <div className="grid grid-cols-2 gap-4 mt-4">
               <div className="flex flex-col items-center">
                 <div className="w-40 h-40 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-gray-700 hover:shadow-xl transition-all transform hover:scale-105">
                   <img 

@@ -185,7 +185,7 @@ export function Backups() {
 
   if (isLoading && backups.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -211,7 +211,7 @@ export function Backups() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* 页面头部 */}
-      <div className="px-4 sm:px-6 py-6 sm:py-8 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">备份管理</h2>
@@ -262,7 +262,7 @@ export function Backups() {
       )}
 
       {/* 统计信息 */}
-      <div className="px-4 sm:px-6 py-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="px-4 sm:px-6 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="card p-6 rounded-2xl">
           <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
             {backups.length}
@@ -284,7 +284,7 @@ export function Backups() {
       </div>
 
       {/* 备份列表 */}
-      <div className="px-4 sm:px-6 py-6">
+      <div className="px-4 sm:px-6 py-4">
         {backups.length === 0 ? (
           <div className="card p-12 text-center rounded-2xl">
             <HardDrive className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />

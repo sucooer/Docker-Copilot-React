@@ -16,7 +16,7 @@ import {
 import { ThemeToggle } from './ThemeToggle.jsx'
 import { UpdatePrompt } from './UpdatePrompt.jsx'
 import { cn } from '../utils/cn.js'
-import { LOGO_CONFIG } from '../assets/logo.js'
+import logoImg from '../assets/DockerCopilot-logo.png'
 import { useVersionCheck } from '../hooks/useVersionCheck.js'
 
 export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false, onToggleCollapse }) {
@@ -158,9 +158,10 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
               )}
               title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
             >
-              <div className="flex-shrink-0">
+                <div className="flex-shrink-0">
                 <img 
-                  {...LOGO_CONFIG}
+                  src={logoImg}
+                  alt="Docker Copilot"
                   className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
                 />
               </div>
@@ -174,7 +175,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
           </div>
 
           {/* 导航菜单 */}
-          <nav className={cn("flex-1 py-4 sm:py-6 overflow-y-auto", sidebarCollapsed ? "px-2" : "px-3 sm:px-4")}>
+          <nav className={cn("flex-1 py-4 sm:py-4 overflow-y-auto", sidebarCollapsed ? "px-2" : "px-3 sm:px-4")}>
             <ul className={cn("space-y-1", sidebarCollapsed ? "space-y-6 sm:space-y-8" : "space-y-1")}>
               {navItems.map((item) => {
                 const Icon = item.icon

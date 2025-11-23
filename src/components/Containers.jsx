@@ -529,7 +529,7 @@ export function Containers() {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="animate-pulse space-y-4">
           {[1, 2, 3].map(i => (
             <div key={i} className="card p-6">
@@ -548,7 +548,7 @@ export function Containers() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
       <style>{`
         @keyframes shimmer {
           0% { background-position: -200% 0; }
@@ -606,7 +606,7 @@ export function Containers() {
       )}
       
       {/* 页面标题和操作 */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">容器管理</h2>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -1174,7 +1174,7 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
         </div>
         
         {/* 弹窗内容 */}
-        <div className="px-6 py-4 space-y-5">
+        <div className="px-6 py-4 space-y-4">
           {/* 容器名称 */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

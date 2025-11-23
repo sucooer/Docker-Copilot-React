@@ -103,13 +103,13 @@ export function Icons() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* 页面头部 */}
-      <div className="px-4 sm:px-6 py-6 sm:py-8 border-b border-gray-200 dark:border-gray-700">
+        <div className="px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">图标库</h2>
         <p className="text-gray-600 dark:text-gray-400">浏览和管理Docker镜像图标</p>
       </div>
 
       {/* 搜索和过滤 */}
-      <div className="px-4 sm:px-6 py-6 space-y-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+      <div className="px-4 sm:px-6 py-4 space-y-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
         {/* 搜索框 */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -164,7 +164,7 @@ export function Icons() {
       </div>
 
       {/* 图标网格 */}
-      <div className="px-4 sm:px-6 py-6">
+      <div className="px-4 sm:px-6 py-4">
         {filteredIcons.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {filteredIcons.map(([name, url]) => (

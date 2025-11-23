@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Key, LogIn, Eye, EyeOff } from 'lucide-react'
 import { authAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
-import { LOGO_CONFIG } from '../assets/logo.js'
+import logoImg from '../assets/DockerCopilot-logo.png'
 
 export function Auth({ onLogin }) {
   const [secretKey, setSecretKey] = useState('')
@@ -40,12 +40,13 @@ export function Auth({ onLogin }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full space-y-6">
         {/* 头部 */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
             <img 
-              {...LOGO_CONFIG}
+              src={logoImg}
+              alt="Docker Copilot"
               className="h-32 w-32 rounded-2xl object-cover"
             />
           </div>
@@ -56,7 +57,7 @@ export function Auth({ onLogin }) {
         </div>
 
         {/* 表单 */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="secretKey" className="sr-only">
               密钥

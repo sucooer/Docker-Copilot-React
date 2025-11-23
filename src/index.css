@@ -10,9 +10,23 @@
   body {
     @apply antialiased;
   }
+
+  /* 安全区域支持 */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
+  }
 }
 
 @layer components {
+  /* 手机端底部安全区域类 */
+  .safe-area-inset-bottom {
+    @supports (padding: max(0px)) {
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+  }
   .btn {
     @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }

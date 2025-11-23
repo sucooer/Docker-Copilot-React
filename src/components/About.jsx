@@ -4,65 +4,103 @@ import alipayImg from '../assets/alipay.jpg'
 
 export function About() {
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 md:p-8 transition-colors duration-200">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">关于 Docker Copilot</h1>
+    <div className="max-w-3xl mx-auto">
+      {/* 头部信息 */}
+      <div className="card rounded-3xl p-6 sm:p-8 mb-4 text-center bg-gradient-to-br from-primary-50 to-blue-50 dark:from-primary-900/20 dark:to-blue-900/20">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">Docker Copilot</h1>
+        <p className="text-gray-600 dark:text-gray-400">一个简洁优雅的Docker容器管理工具</p>
+      </div>
+
+      {/* 主要内容 */}
+      <div className="space-y-4">
+        {/* 感谢卡片 */}
+        <div className="card p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">致谢</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            非常感谢大家自项目开始以来的使用、建议、鼓励和支持。特别感谢绿联对本项目的支持。没有大家的反馈，Docker Copilot 不会是今天的样子。他是属于我们共同的作品。
+          </p>
         </div>
 
-        <div className="space-y-6 text-gray-800 dark:text-gray-200">
-          <div className="rounded-lg bg-gray-50 dark:bg-gray-700/50 p-6 transition-colors duration-200">
-            <p className="mb-4 leading-relaxed">
-              一些个人的碎碎念，
-              首先非常感谢大家自项目开始以来的使用、建议、鼓励和支持，然后要感谢绿联对本项目的支持。
-              没有大家的这些反馈DC不会是今天的这个样子。他是属于我们共同的作品，我会继续尽力去维护好这个项目。
+        {/* 反馈卡片 */}
+        <div className="card p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">反馈与建议</h2>
+          <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+            在项目使用中遇到 bug 或想要提建议？欢迎在 
+            <a 
+              href="https://github.com/onlyLTY/dockercopilot/issues" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline font-medium transition-colors"
+            >
+              GitHub Issues
+            </a>
+            {' '}提出，或发送邮件至
+            <a 
+              href="mailto:onlylty@lty.wiki" 
+              className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 underline font-medium transition-colors"
+            >
+              onlylty@lty.wiki
+            </a>
+            。期待您的反馈！
+          </p>
+        </div>
+
+        {/* 赞赏卡片 */}
+        <div className="card p-6 sm:p-8 rounded-2xl border-2 border-primary-200 dark:border-primary-800 bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-900/30 hover:shadow-lg transition-all">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-primary-900 dark:text-primary-200 mb-2">最后的最后</h2>
+            <p className="text-primary-800 dark:text-primary-300 mb-4">
+              如果您用的愉快的话，可以请我喝一瓶快乐水吗？您的支持是我持续维护项目的动力！
             </p>
+            
+            {/* 赞赏码 */}
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="flex flex-col items-center">
+                <div className="w-40 h-40 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-gray-700 hover:shadow-xl transition-all transform hover:scale-105">
+                  <img 
+                    src={wechatImg} 
+                    alt="微信赞赏码" 
+                    className="w-full h-full object-contain bg-white"
+                  />
+                </div>
+                <span className="mt-3 text-sm font-medium text-primary-700 dark:text-primary-300">微信支付</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-40 h-40 rounded-2xl overflow-hidden shadow-lg border-2 border-white dark:border-gray-700 hover:shadow-xl transition-all transform hover:scale-105">
+                  <img 
+                    src={alipayImg} 
+                    alt="支付宝赞赏码" 
+                    className="w-full h-full object-contain bg-white"
+                  />
+                </div>
+                <span className="mt-3 text-sm font-medium text-primary-700 dark:text-primary-300">支付宝支付</span>
+              </div>
+            </div>
           </div>
-          
-          <div className="rounded-lg bg-gray-50 dark:bg-gray-700/50 p-6 transition-colors duration-200">
-            <p className="mb-4 leading-relaxed">
-              如果在项目使用中遇到了bug或者想要提建议，可以在GitHub的issue提出或者可以给我的邮箱
+        </div>
+
+        {/* 信息卡片 */}
+        <div className="card p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-2 gap-4 text-center">
+            <div>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">项目地址</p>
               <a 
-                href="mailto:onlylty@lty.wiki" 
-                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors duration-200"
+                href="https://github.com/onlyLTY/dockercopilot" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline truncate"
+              >
+                GitHub
+              </a>
+            </div>
+            <div>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1">联系方式</p>
+              <a 
+                href="mailto:onlylty@lty.wiki"
+                className="text-sm font-medium text-primary-600 dark:text-primary-400 hover:underline truncate"
               >
                 onlylty@lty.wiki
               </a>
-              发送邮件。期待您的反馈。
-            </p>
-          </div>
-          
-          <div className="rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800/50 p-6 transition-all duration-200 hover:shadow-md">
-            <h2 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3">最后的最后</h2>
-            <p className="text-blue-700 dark:text-blue-300 leading-relaxed">
-              如果您用的愉快的话，可以请我喝一瓶快乐水吗？
-            </p>
-            
-            {/* 为赞赏码预留空间 */}
-            <div className="mt-6">
-              <p className="text-sm text-blue-600 dark:text-blue-400 mb-3">您的支持是我持续维护项目的动力</p>
-              <div className="flex flex-col sm:flex-row gap-16 justify-center" id="sponsorship-section">
-                <div className="flex flex-col items-center">
-                  <div className="rounded-xl overflow-hidden w-40 h-40 flex items-center justify-center bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500">
-                    <img 
-                      src={wechatImg} 
-                      alt="微信赞赏码" 
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="mt-2 text-sm text-blue-700 dark:text-blue-300">微信扫一扫</span>
-                </div>
-                <div className="flex flex-col items-center">
-                  <div className="rounded-xl overflow-hidden w-40 h-40 flex items-center justify-center bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 shadow-lg transition-all duration-200 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-500">
-                    <img 
-                      src={alipayImg} 
-                      alt="支付宝赞赏码" 
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <span className="mt-2 text-sm text-blue-700 dark:text-blue-300">支付宝扫一扫</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>

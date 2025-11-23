@@ -47,6 +47,9 @@ export default {
           '0%': { transform: 'translateY(10px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
         }
+      },
+      spacing: {
+        'safe': 'max(1rem, env(safe-area-inset-bottom))',
       }
     },
   },

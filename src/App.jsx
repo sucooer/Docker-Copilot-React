@@ -101,7 +101,7 @@ function AppContent() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex-col lg:flex-row">
       <Sidebar 
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -110,11 +110,13 @@ function AppContent() {
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
       <main className={cn(
-        "flex-1 h-screen overflow-y-auto transition-all duration-300",
-        isSidebarCollapsed ? "lg:ml-0" : "lg:ml-0",
-        "p-6"
+        "flex-1 flex flex-col transition-all duration-300",
+        "lg:min-h-screen lg:overflow-y-auto",
+        "min-h-0"
       )}>
-        {renderContent()}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-4 lg:p-4 pt-16 lg:pt-4">
+          {renderContent()}
+        </div>
       </main>
     </div>
   )

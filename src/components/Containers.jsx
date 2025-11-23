@@ -694,12 +694,6 @@ export function Containers() {
                          animation: 'shimmer 2s infinite linear'
                        }} />
                 </div>
-                {/* 进度百分比显示 */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-primary-600/90 dark:bg-primary-500/90 text-white px-4 py-1 rounded-full text-sm font-semibold shadow-lg backdrop-blur-sm">
-                    {Math.round(containerActions[container.id].percentage || 0)}%
-                  </div>
-                </div>
               </div>
             )}
             <div className="relative z-10 flex items-center justify-between gap-4">
@@ -777,9 +771,13 @@ export function Containers() {
                   {/* 状态指示器竖线 */}
                   <div className="flex flex-col items-center justify-center h-full">
                     <div className={cn(
-                      "w-1 h-14 rounded-full",
+                      "w-1 h-14 rounded-full relative overflow-hidden",
                       getStatusIndicatorColor(container.status)
-                    )}></div>
+                    )}>
+                      {container.haveUpdate && (
+                        <div className="absolute bottom-0 left-0 right-0 h-3.5" style={{ backgroundColor: '#AFBA3A' }}></div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -794,9 +792,6 @@ export function Containers() {
                     >
                       {container.name}
                     </h3>
-                    {container.haveUpdate && (
-                      <span className="badge-warning text-xs flex-shrink-0 px-2 py-0.5 rounded-full">可更新</span>
-                    )}
                   </div>
                   
                   <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
@@ -837,7 +832,11 @@ export function Containers() {
                           {containerActions[container.id].action === 'start' && '启动中'}
                           {containerActions[container.id].action === 'stop' && '停止中'}
                           {containerActions[container.id].action === 'restart' && '重启中'}
-                          {containerActions[container.id].action === 'update' && '更新中'}
+                          {containerActions[container.id].action === 'update' && (
+                            <>
+                              更新中 {containerActions[container.id].percentage ? `${Math.round(containerActions[container.id].percentage)}%` : ''}
+                            </>
+                          )}
                         </span>
                       </div>
                     ) : (
@@ -874,7 +873,11 @@ export function Containers() {
 
                         <button
                           onClick={() => handleUpdateContainer(container.id)}
-                          className="group relative text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-xl transition-all duration-200 flex items-center shadow-sm hover:shadow px-3 py-2 space-x-1 justify-center"
+                          className={cn(
+                            "group relative text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-xl transition-all duration-200 flex items-center shadow-sm hover:shadow px-3 py-2 space-x-1 justify-center",
+                            container.haveUpdate && "border-2"
+                          )}
+                          style={container.haveUpdate ? { borderColor: '#AFBA3A' } : {}}
                           title="更新容器"
                         >
                           <Upload className="h-5 w-5" />

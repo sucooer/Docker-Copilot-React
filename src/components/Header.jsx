@@ -104,9 +104,9 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       {/* 移动端菜单按钮 */}
       <button
         onClick={() => setIsMobileMenuOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-30 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-md"
+        className="lg:hidden fixed top-3 left-3 z-30 p-2.5 sm:p-3 bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow active:scale-95"
       >
-        <Menu className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+        <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-300" />
       </button>
 
       {/* 侧边栏遮罩 */}
@@ -120,14 +120,15 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       {/* 侧边栏 */}
       <aside 
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-lg lg:shadow-none transform transition-all duration-300 ease-in-out",
-          sidebarCollapsed ? "w-20" : "w-64",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed lg:static inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-lg lg:shadow-none transform transition-all duration-300 ease-in-out flex flex-col",
+          sidebarCollapsed ? "w-20" : "w-64 sm:w-72 md:w-64",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          "max-h-screen overflow-y-auto"
         )}
       >
         <div className="flex flex-col h-full">
           {/* 头部 */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
             <div className={cn(
               "flex items-center w-full",
               sidebarCollapsed ? "justify-center" : "justify-between"
@@ -136,20 +137,20 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
               <button
                 onClick={handleToggleCollapse}
                 className={cn(
-                  "flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer group",
-                  sidebarCollapsed ? "p-2" : "space-x-3 p-2 -m-2"
+                  "flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer group active:scale-95",
+                  sidebarCollapsed ? "p-2" : "space-x-2 sm:space-x-3 p-2 -m-2"
                 )}
                 title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
               >
                 <div className="flex-shrink-0">
                   <img 
                     {...LOGO_CONFIG}
-                    className="h-10 w-10 rounded-xl object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
+                    className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
                   />
                 </div>
                 {!sidebarCollapsed && (
-                  <div className="text-left transition-all duration-300">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Docker Copilot</h1>
+                  <div className="text-left transition-all duration-300 min-w-0">
+                    <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">Docker Copilot</h1>
                     <p className="text-xs text-gray-500 dark:text-gray-400">容器管理平台</p>
                   </div>
                 )}
@@ -159,7 +160,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
               {!sidebarCollapsed && (
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="lg:hidden p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="lg:hidden p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 active:scale-90 transition-transform"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -168,8 +169,8 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
           </div>
 
           {/* 导航菜单 */}
-          <nav className={cn("flex-1 py-6", sidebarCollapsed ? "px-2" : "px-4")}>
-            <ul className={cn("space-y-1", sidebarCollapsed ? "space-y-8" : "space-y-1")}>
+          <nav className={cn("flex-1 py-4 sm:py-6 overflow-y-auto", sidebarCollapsed ? "px-2" : "px-3 sm:px-4")}>
+            <ul className={cn("space-y-1", sidebarCollapsed ? "space-y-6 sm:space-y-8" : "space-y-1")}>
               {navItems.map((item) => {
                 const Icon = item.icon
                 return (
@@ -180,8 +181,8 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
                         setIsMobileMenuOpen(false)
                       }}
                       className={cn(
-                        "w-full flex items-center rounded-xl text-left transition-all duration-200 group",
-                        sidebarCollapsed ? "justify-center px-2 py-3" : "space-x-3 px-4 py-4",
+                        "w-full flex items-center rounded-xl text-left transition-all duration-200 group active:scale-95 touch-highlight",
+                        sidebarCollapsed ? "justify-center px-2 py-3 sm:py-4" : "space-x-2 sm:space-x-3 px-3 sm:px-4 py-3 sm:py-4 min-h-12 sm:min-h-14",
                         activeTab === item.id
                           ? "bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium"
                           : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -190,7 +191,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
                     >
                       <Icon className={cn("flex-shrink-0", sidebarCollapsed ? "h-6 w-6" : "h-5 w-5")} />
                       {!sidebarCollapsed && (
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate text-sm sm:text-base">{item.label}</span>
                       )}
                     </button>
                   </li>
@@ -200,7 +201,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
           </nav>
 
           {/* 底部 */}
-          <div className={cn("border-t border-gray-200 dark:border-gray-700", sidebarCollapsed ? "p-2" : "p-4")}>
+          <div className={cn("border-t border-gray-200 dark:border-gray-700 flex-shrink-0", sidebarCollapsed ? "p-2" : "p-3 sm:p-4")}>
             {/* 操作按钮区域 */}
             <div className={cn(
               "flex items-center gap-2",
@@ -218,21 +219,21 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
               <button
                 onClick={onLogout}
                 className={cn(
-                  "flex items-center justify-center gap-2 px-3 py-2 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-all duration-200 group",
-                  sidebarCollapsed ? "w-full p-2" : "flex-1"
+                  "flex items-center justify-center gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-all duration-200 group active:scale-95 min-h-10 sm:min-h-11",
+                  sidebarCollapsed ? "w-full" : "flex-1"
                 )}
                 title={sidebarCollapsed ? "退出登录" : ""}
               >
                 <LogOut className="h-4 w-4 flex-shrink-0 group-hover:rotate-12 transition-transform duration-200" />
                 {!sidebarCollapsed && (
-                  <span className="text-sm font-medium">退出</span>
+                  <span className="text-xs sm:text-sm font-medium">退出</span>
                 )}
               </button>
             </div>
             {!sidebarCollapsed && (
-              <div className="mt-4">
+              <div className="mt-3 sm:mt-4">
                 {/* 版本信息卡片 */}
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
                   <div className="space-y-3">
                     {/* 标题和版本 */}
                     <div className="flex justify-between items-start">

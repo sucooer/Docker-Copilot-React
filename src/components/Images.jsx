@@ -543,11 +543,21 @@ export function Images() {
               <div className="w-full h-px bg-gradient-to-r from-transparent via-red-200 dark:via-red-800 to-transparent mb-6"></div>
 
               {/* 消息内容 */}
-              <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-8">
-                {deleteModal.force
-                  ? `确定要强制删除镜像 <span className="font-semibold text-red-600 dark:text-red-400">"${deleteModal.image?.name}"</span> 吗？这将删除正在使用的镜像！`
-                  : `确定要删除镜像 <span className="font-semibold text-red-600 dark:text-red-400">"${deleteModal.image?.name}"</span> 吗？`}
-              </p>
+              <div className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-8">
+                {deleteModal.force ? (
+                  <>
+                    确定要强制删除镜像{' '}
+                    <span className="font-semibold text-red-600 dark:text-red-400">"{deleteModal.image?.name}"</span>
+                    {' '}吗？这将删除正在使用的镜像！
+                  </>
+                ) : (
+                  <>
+                    确定要删除镜像{' '}
+                    <span className="font-semibold text-red-600 dark:text-red-400">"{deleteModal.image?.name}"</span>
+                    {' '}吗？
+                  </>
+                )}
+              </div>
 
               {/* 按钮组 */}
               <div className="flex gap-3">

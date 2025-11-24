@@ -987,8 +987,16 @@ export function Containers() {
                                 {container.name}
                               </h3>
                               {container.haveUpdate && (
-                                <span className="ml-2 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-yellow-400 to-yellow-500 dark:from-yellow-500 dark:to-yellow-600 animate-pulse shadow-md" title="有新版本可更新">
-                                  <span style={{ animation: 'bounceArrow 1.5s ease-in-out infinite' }}>⬆</span>
+                                <span className="ml-2 inline-flex items-center justify-center px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 dark:from-yellow-500 dark:to-yellow-600 animate-pulse shadow-md flex-shrink-0" title="有新版本可更新">
+                                  <img 
+                                    src="/src/assets/icons8.png" 
+                                    alt="更新" 
+                                    className="h-4 w-4 flex-shrink-0"
+                                    style={{ 
+                                      animation: 'bounceArrow 1.5s ease-in-out infinite',
+                                      filter: 'invert(1) hue-rotate(180deg) saturate(3)'
+                                    }}
+                                  />
                                 </span>
                               )}
                             </div>

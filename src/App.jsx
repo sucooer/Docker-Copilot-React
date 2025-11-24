@@ -111,10 +111,11 @@ function AppContent() {
       />
       <main className={cn(
         "flex-1 flex flex-col transition-all duration-300",
-        "lg:min-h-screen lg:overflow-y-auto",
-        "min-h-0"
+        "overflow-y-auto",
+        "min-h-screen",
+        isSidebarCollapsed ? "lg:ml-20" : "lg:ml-64"
       )}>
-        <div className="flex-1 overflow-y-auto p-4 sm:p-4 lg:p-4 pt-1 sm:pt-4">
+        <div className="flex-1 p-4 sm:p-4 lg:p-4 pt-1 sm:pt-4">
           {renderContent()}
         </div>
       </main>

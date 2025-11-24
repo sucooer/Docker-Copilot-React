@@ -139,10 +139,10 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       {/* 侧边栏 */}
       <aside 
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-lg lg:shadow-none transform transition-all duration-300 ease-in-out flex flex-col",
+          "fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-lg lg:shadow-none transform transition-all duration-300 ease-in-out flex flex-col",
           sidebarCollapsed ? "w-20" : "w-64 sm:w-72 md:w-64",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          "max-h-screen overflow-y-auto lg:h-auto",
+          "max-h-screen overflow-y-auto",
           "lg:top-0 top-14"
         )}
       >

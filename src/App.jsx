@@ -114,7 +114,7 @@ function AppContent() {
         "lg:min-h-screen lg:overflow-y-auto",
         "min-h-0"
       )}>
-        <div className="flex-1 overflow-y-auto p-4 sm:p-4 lg:p-4 pt-16 lg:pt-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-4 lg:p-4 pt-1 sm:pt-4">
           {renderContent()}
         </div>
       </main>

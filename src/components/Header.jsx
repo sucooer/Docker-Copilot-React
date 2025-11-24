@@ -163,7 +163,8 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
         )}
       >
         <div className="flex flex-col h-full">
-          {/* 头部 - 现代卡片设计 */}
+          {/* 头部 - 现代卡片设计 (仅在非手机模式显示) */}
+          {isMobileSize === false && (
           <div className="p-4 sm:p-5 flex-shrink-0">
             <button
               onClick={handleToggleCollapse}
@@ -186,7 +187,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
                   className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl object-cover shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200 border-0"
                 />
               </div>
-              {!isCollapsed && (
+              {!isCollapsed && isMobileSize === false && (
                 <div className="text-left transition-all duration-300 min-w-0 flex-1">
                   <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Docker Copilot</h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">容器管理平台</p>
@@ -194,6 +195,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
               )}
             </button>
           </div>
+          )}
 
           {/* 分割线 */}
           <div className="px-4 sm:px-5">

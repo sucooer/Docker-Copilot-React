@@ -633,251 +633,288 @@ export function Containers() {
             </button>
           </div>
         ) : (
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2 sm:gap-3 w-full sm:w-auto">
             <button 
-              className="btn-secondary"
+              className="btn-secondary px-3 sm:px-4 py-2"
               onClick={toggleSelectAll}
+              title={selectedContainers.length === containers.length ? '取消全选' : '全选'}
             >
-              {selectedContainers.length === containers.length ? '取消全选' : '全选'}
+              <span className="hidden sm:inline">
+                {selectedContainers.length === containers.length ? '取消全选' : '全选'}
+              </span>
+              <span className="sm:hidden text-sm font-semibold">
+                {selectedContainers.length}/{containers.length}
+              </span>
             </button>
             <button 
-              className={`btn-primary flex items-center ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`btn-primary flex items-center justify-center px-3 sm:px-4 py-2 gap-1 sm:gap-2 ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={selectedContainers.length === 0}
               onClick={() => handleBatchAction('start')}
+              title="启动"
             >
-              <Play className="h-4 w-4 mr-2" />
-              启动
+              <Play className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">启动</span>
             </button>
             <button 
-              className={`btn-secondary flex items-center ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`btn-secondary flex items-center justify-center px-3 sm:px-4 py-2 gap-1 sm:gap-2 ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={selectedContainers.length === 0}
               onClick={() => handleBatchAction('stop')}
+              title="停止"
             >
-              <Square className="h-4 w-4 mr-2" />
-              停止
+              <Square className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">停止</span>
             </button>
             <button 
-              className={`btn-secondary flex items-center ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`btn-secondary flex items-center justify-center px-3 sm:px-4 py-2 gap-1 sm:gap-2 ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={selectedContainers.length === 0}
               onClick={() => handleBatchAction('restart')}
+              title="重启"
             >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              重启
+              <RotateCcw className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">重启</span>
             </button>
             <button 
-              className={`btn-secondary flex items-center ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`btn-secondary flex items-center justify-center px-3 sm:px-4 py-2 gap-1 sm:gap-2 ${selectedContainers.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
               disabled={selectedContainers.length === 0}
               onClick={() => handleBatchAction('update')}
+              title="更新"
             >
-              <Upload className="h-4 w-4 mr-2" />
-              更新
+              <Upload className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline">更新</span>
             </button>
             <button 
-              className="btn-danger"
+              className="btn-danger px-3 sm:px-4 py-2"
               onClick={() => {
                 setSelectedContainers([])
                 setIsBatchMode(false)
               }}
             >
-              取消
+              <span className="hidden sm:inline">取消</span>
+              <span className="sm:hidden">✕</span>
             </button>
           </div>
         )}
       </div>
 
       {/* 容器列表 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {containers.map((container) => (
-          <div key={container.id} className="group">
-            {/* 容器卡片 - 简化设计，点击调起详情 */}
-            <div 
-              onClick={() => setSelectedContainer(container)}
-              className="card relative overflow-hidden transition-all duration-200 hover:shadow-lg border border-gray-200 dark:border-gray-700 rounded-2xl p-4 cursor-pointer hover:border-primary-300 dark:hover:border-primary-600 active:scale-98"
-            >
-              {/* 背景进度条 */}
-              {containerActions[container.id]?.loading && containerActions[container.id]?.action === 'update' && (
-                <div className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden">
+      <div className="px-4 sm:px-6 py-4">
+        {selectedContainers.length > 0 && (
+          <div className="mb-4 p-3 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg flex items-center justify-between">
+            <span className="text-sm text-primary-700 dark:text-primary-300">
+              已选中 {selectedContainers.length} 个容器（使用 Ctrl/Cmd+点击 来切换选择，或直接点击卡片打开详情）
+            </span>
+          </div>
+        )}
+        
+        {containers.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {containers.map((container) => {
+              const isSelected = selectedContainers.includes(container.id)
+              return (
+                <div key={container.id} className="group">
+                  {/* 容器卡片 - 简化设计，点击调起详情 */}
                   <div 
-                    className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-primary-500/30 via-primary-400/30 to-primary-500/30 transition-all duration-500 ease-out"
-                    style={{
-                      width: `${containerActions[container.id].percentage || 0}%`
-                    }}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"
-                         style={{
-                           backgroundSize: '200% 100%',
-                           animation: 'shimmer 2s infinite linear'
-                         }} />
-                  </div>
-                </div>
-              )}
-
-              <div className="relative z-10 flex items-center gap-3">
-                {/* 图标 */}
-                <div className="flex-shrink-0">
-                  {(() => {
-                    let iconUrl = container.iconUrl;
-                    if (!iconUrl && container.usingImage) {
-                      const builtInLogo = getImageLogo(container.usingImage);
-                      if (builtInLogo) {
-                        iconUrl = builtInLogo;
+                    onClick={(e) => {
+                      // 如果启用批量模式，点击选择；否则打开详情
+                      if (e.metaKey || e.ctrlKey || isBatchMode) {
+                        e.stopPropagation()
+                        toggleContainerSelection(container.id)
                       } else {
-                        const imageLogos = JSON.parse(localStorage.getItem('docker_copilot_image_logos') || '{}');
-                        for (const [imageName, logoUrl] of Object.entries(imageLogos)) {
-                          if (container.usingImage.startsWith(imageName) || 
-                              container.usingImage.includes(`${imageName}:`)) {
-                            iconUrl = logoUrl;
-                            break;
-                          }
-                        }
+                        setSelectedContainer(container)
                       }
-                    }
-                   
-                    if (iconUrl) {
-                      return (
-                        <img 
-                          src={iconUrl} 
-                          alt={container.name} 
-                          className="h-12 w-12 rounded-xl object-cover shadow-sm flex-shrink-0"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML = `
-                              <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
-                                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
-                                </svg>
-                              </div>
-                            `;
+                    }}
+                    className={cn(
+                      "card relative overflow-hidden transition-all duration-200 hover:shadow-lg border rounded-2xl p-4 cursor-pointer active:scale-98",
+                      isSelected
+                        ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20 shadow-md"
+                        : "border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-600"
+                    )}
+                  >
+                    {/* 背景进度条 */}
+                    {containerActions[container.id]?.loading && containerActions[container.id]?.action === 'update' && (
+                      <div className="absolute inset-0 pointer-events-none rounded-2xl overflow-hidden">
+                        <div 
+                          className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-primary-500/30 via-primary-400/30 to-primary-500/30 transition-all duration-500 ease-out"
+                          style={{
+                            width: `${containerActions[container.id].percentage || 0}%`
                           }}
-                        />
-                      );
-                    } else {
-                      return (
-                        <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
-                          <Package className="h-6 w-6 text-white" />
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer"
+                               style={{
+                                 backgroundSize: '200% 100%',
+                                 animation: 'shimmer 2s infinite linear'
+                               }} />
                         </div>
-                      );
-                    }
-                  })()}
-                </div>
-
-                {/* 状态指示器（放在图标和信息之间） */}
-                <div className="flex-shrink-0 flex items-center">
-                  <div className={cn(
-                    "w-1 h-8 rounded-full",
-                    getStatusIndicatorColor(container.status)
-                  )} />
-                </div>
-
-                {/* 容器信息 */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center">
-                        <h3 className="font-semibold text-gray-900 dark:text-white truncate text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                          {container.name}
-                        </h3>
-                        {container.haveUpdate && (
-                          <span className="ml-2 inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="有新版本" />
-                        )}
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                        {container.usingImage}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 运行时间 */}
-                  {container.status === 'running' && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      运行: {container.runningTime}
-                    </div>
-                  )}
-
-                  {/* 操作进度 */}
-                  {containerActions[container.id]?.loading && containerActions[container.id]?.progress && (
-                    <p className="text-xs text-blue-600 dark:text-blue-400 truncate mt-1 flex items-center gap-1">
-                      <RefreshCw className="h-3 w-3 animate-spin" />
-                      <span>{containerActions[container.id].progress}</span>
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* 操作按钮栏 - 底部水平排列 */}
-            {!isBatchMode && (
-              <div className="flex gap-2 mt-2 px-1">
-                {containerActions[container.id]?.loading ? (
-                  <div className="flex-1 flex items-center justify-center space-x-2 px-2 py-1.5 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
-                    <RefreshCw className="h-4 w-4 animate-spin text-primary-600 dark:text-primary-400" />
-                    <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
-                      {containerActions[container.id].action === 'start' && '启动中'}
-                      {containerActions[container.id].action === 'stop' && '停止中'}
-                      {containerActions[container.id].action === 'restart' && '重启中'}
-                      {containerActions[container.id].action === 'update' && `更新中${containerActions[container.id].percentage ? ` ${Math.round(containerActions[container.id].percentage)}%` : ''}`}
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    {container.status === 'running' ? (
-                      <>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleContainerAction(container.id, 'stop') }}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium"
-                          title="停止"
-                        >
-                          <Square className="h-4 w-4" />
-                          <span>停止</span>
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleContainerAction(container.id, 'restart') }}
-                          className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium"
-                          title="重启"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          <span>重启</span>
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); handleContainerAction(container.id, 'start') }}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium"
-                        title="启动"
-                      >
-                        <Play className="h-4 w-4" />
-                        <span>启动</span>
-                      </button>
                     )}
 
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleUpdateContainer(container.id) }}
-                      className={cn(
-                        "flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium",
-                        container.haveUpdate ? "border-yellow-400 dark:border-yellow-600" : "border-purple-200 dark:border-purple-800"
-                      )}
-                      title="更新"
-                    >
-                      <Upload className="h-4 w-4" />
-                      <span>更新</span>
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+                    <div className="relative z-10 flex items-center gap-3">
+                      {/* 图标 */}
+                      <div className="flex-shrink-0">
+                        {(() => {
+                          let iconUrl = container.iconUrl;
+                          if (!iconUrl && container.usingImage) {
+                            const builtInLogo = getImageLogo(container.usingImage);
+                            if (builtInLogo) {
+                              iconUrl = builtInLogo;
+                            } else {
+                              const imageLogos = JSON.parse(localStorage.getItem('docker_copilot_image_logos') || '{}');
+                              for (const [imageName, logoUrl] of Object.entries(imageLogos)) {
+                                if (container.usingImage.startsWith(imageName) || 
+                                    container.usingImage.includes(`${imageName}:`)) {
+                                  iconUrl = logoUrl;
+                                  break;
+                                }
+                              }
+                            }
+                          }
+                         
+                          if (iconUrl) {
+                            return (
+                              <img 
+                                src={iconUrl} 
+                                alt={container.name} 
+                                className="h-12 w-12 rounded-xl object-cover shadow-sm flex-shrink-0"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.parentElement.innerHTML = `
+                                    <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                                      </svg>
+                                    </div>
+                                  `;
+                                }}
+                              />
+                            );
+                          } else {
+                            return (
+                              <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
+                                <Package className="h-6 w-6 text-white" />
+                              </div>
+                            );
+                          }
+                        })()}
+                      </div>
 
-      {containers.length === 0 && (
-        <div className="text-center py-12">
-          <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">暂无容器</h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            当前没有运行中的Docker容器
-          </p>
-        </div>
-      )}
+                      {/* 状态指示器（放在图标和信息之间） */}
+                      <div className="flex-shrink-0 flex items-center">
+                        <div className={cn(
+                          "w-1 h-8 rounded-full",
+                          getStatusIndicatorColor(container.status)
+                        )} />
+                      </div>
+
+                      {/* 容器信息 */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center">
+                              <h3 className="font-semibold text-gray-900 dark:text-white truncate text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                {container.name}
+                              </h3>
+                              {container.haveUpdate && (
+                                <span className="ml-2 inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="有新版本" />
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                              {container.usingImage}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* 运行时间 */}
+                        {container.status === 'running' && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            运行: {container.runningTime}
+                          </div>
+                        )}
+
+                        {/* 操作进度 */}
+                        {containerActions[container.id]?.loading && containerActions[container.id]?.progress && (
+                          <p className="text-xs text-blue-600 dark:text-blue-400 truncate mt-1 flex items-center gap-1">
+                            <RefreshCw className="h-3 w-3 animate-spin" />
+                            <span>{containerActions[container.id].progress}</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 操作按钮栏 - 底部水平排列 */}
+                  {!isBatchMode && (
+                    <div className="flex gap-2 mt-2 px-1">
+                      {containerActions[container.id]?.loading ? (
+                        <div className="flex-1 flex items-center justify-center space-x-2 px-2 py-1.5 bg-primary-50 dark:bg-primary-900/20 rounded-lg border border-primary-200 dark:border-primary-800">
+                          <RefreshCw className="h-4 w-4 animate-spin text-primary-600 dark:text-primary-400" />
+                          <span className="text-xs font-medium text-primary-600 dark:text-primary-400">
+                            {containerActions[container.id].action === 'start' && '启动中'}
+                            {containerActions[container.id].action === 'stop' && '停止中'}
+                            {containerActions[container.id].action === 'restart' && '重启中'}
+                            {containerActions[container.id].action === 'update' && `更新中${containerActions[container.id].percentage ? ` ${Math.round(containerActions[container.id].percentage)}%` : ''}`}
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          {container.status === 'running' ? (
+                            <>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleContainerAction(container.id, 'stop') }}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium"
+                                title="停止"
+                              >
+                                <Square className="h-4 w-4" />
+                                <span>停止</span>
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleContainerAction(container.id, 'restart') }}
+                                className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium"
+                                title="重启"
+                              >
+                                <RotateCcw className="h-4 w-4" />
+                                <span>重启</span>
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleContainerAction(container.id, 'start') }}
+                              className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium"
+                              title="启动"
+                            >
+                              <Play className="h-4 w-4" />
+                              <span>启动</span>
+                            </button>
+                          )}
+
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleUpdateContainer(container.id) }}
+                            className={cn(
+                              "flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 border rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium",
+                              container.haveUpdate ? "border-yellow-400 dark:border-yellow-600" : "border-purple-200 dark:border-purple-800"
+                            )}
+                            title="更新"
+                          >
+                            <Upload className="h-4 w-4" />
+                            <span>更新</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <Package className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">暂无容器</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              当前没有运行中的Docker容器
+            </p>
+          </div>
+        )}
+      </div>
       
       {/* 容器详情弹窗 */}
       {selectedContainer && (

@@ -1,13 +1,12 @@
 import axios from 'axios'
 
 // 动态获取 API 基础地址
-// 优先级：当前主机 > window.__API_BASE_URL > localStorage > 环境变量
+// 优先级：环境变量 > window.__API_BASE_URL > localStorage > 当前主机 > 默认值
 function getAPIBaseURL() {
-  // 1. 最高优先级：使用当前主机
-  if (typeof window !== 'undefined' && window.location.host) {
-    const currentHostURL = `${window.location.protocol}//${window.location.host}`
-    console.log('Using current host API URL:', currentHostURL)
-    return currentHostURL
+  // 1. 最高优先级：环境变量（构建时注入）
+  if (import.meta.env.VITE_API_BASE_URL) {
+    console.log('Using build-time API URL:', import.meta.env.VITE_API_BASE_URL)
+    return import.meta.env.VITE_API_BASE_URL
   }
   
   // 2. 检查全局变量（注入的配置）
@@ -23,10 +22,11 @@ function getAPIBaseURL() {
     return savedURL
   }
   
-  // 4. 最低优先级：环境变量（构建时注入）
-  if (import.meta.env.VITE_API_BASE_URL) {
-    console.log('Using build-time API URL:', import.meta.env.VITE_API_BASE_URL)
-    return import.meta.env.VITE_API_BASE_URL
+  // 4. 使用当前主机
+  if (typeof window !== 'undefined' && window.location.host) {
+    const currentHostURL = `${window.location.protocol}//${window.location.host}`
+    console.log('Using current host API URL:', currentHostURL)
+    return currentHostURL
   }
   
   // 5. 最后的默认值

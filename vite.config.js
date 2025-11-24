@@ -6,7 +6,7 @@ export default defineConfig({
     jsxRuntime: 'automatic'
   })],
   server: {
-    port: 12713,
+    port: process.env.VITE_PORT ? parseInt(process.env.VITE_PORT) : 12713,
     host: true
   },
   build: {

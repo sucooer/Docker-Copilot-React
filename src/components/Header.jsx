@@ -188,7 +188,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
               </div>
               {!isCollapsed && (
                 <div className="text-left transition-all duration-300 min-w-0 flex-1">
-                  <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-400 dark:to-primary-300 bg-clip-text text-transparent">Docker Copilot</h1>
+                  <h1 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Docker Copilot</h1>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">容器管理平台</p>
                 </div>
               )}

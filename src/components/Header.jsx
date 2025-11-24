@@ -103,13 +103,17 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
     <>
       {/* 顶部导航栏 */}
       <div className="fixed top-0 left-0 right-0 lg:hidden h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 sm:px-4 z-40 shadow-sm">
-        {/* 左侧：菜单按钮 */}
+        {/* 左侧：Logo 按钮 */}
         <button
           onClick={() => setIsMobileMenuOpen(true)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors active:scale-95"
+          className="p-2 hover:scale-110 transition-transform active:scale-95 rounded-lg"
           title="打开菜单"
         >
-          <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600 dark:text-gray-300" />
+          <img 
+            src={logoImg}
+            alt="菜单"
+            className="h-6 w-6 sm:h-7 sm:w-7 rounded-lg object-cover border-0"
+          />
         </button>
 
         {/* 右侧：主题切换和退出登录 */}
@@ -139,46 +143,51 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       {/* 侧边栏 */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-lg lg:shadow-none transform transition-all duration-300 ease-in-out flex flex-col",
+          "fixed inset-y-0 left-0 z-50 bg-white dark:bg-gray-800 shadow-xl lg:shadow-none transform transition-all duration-300 ease-in-out flex flex-col",
           sidebarCollapsed ? "w-20" : "w-64 sm:w-72 md:w-64",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           "max-h-screen overflow-y-auto",
-          "lg:top-0 top-14"
+          "lg:top-0 top-14 border-r border-gray-200 dark:border-gray-700"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* 头部 */}
-          <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
-            {/* Logo区域 - 点击可收起/展开 */}
+          {/* 头部 - 现代卡片设计 */}
+          <div className="p-4 sm:p-5 flex-shrink-0">
             <button
               onClick={handleToggleCollapse}
               className={cn(
-                "flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors cursor-pointer group active:scale-95",
-                sidebarCollapsed ? "p-2" : "space-x-2 sm:space-x-3 p-2 -m-2"
+                "w-full flex items-center transition-all duration-300 group cursor-pointer",
+                sidebarCollapsed ? "justify-center" : "space-x-3"
               )}
               title={sidebarCollapsed ? "展开侧边栏" : "收起侧边栏"}
             >
-                <div className="flex-shrink-0">
+              <div className="flex-shrink-0">
                 <img 
                   src={logoImg}
                   alt="Docker Copilot"
-                  className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-cover flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
+                  className="h-9 w-9 sm:h-11 sm:w-11 rounded-xl object-cover shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200 border-0"
                 />
               </div>
               {!sidebarCollapsed && (
-                <div className="text-left transition-all duration-300 min-w-0">
-                  <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">Docker Copilot</h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">容器管理平台</p>
+                <div className="text-left transition-all duration-300 min-w-0 flex-1">
+                  <h1 className="text-base sm:text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-400 dark:to-primary-300 bg-clip-text text-transparent">Docker Copilot</h1>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">容器管理平台</p>
                 </div>
               )}
             </button>
           </div>
 
+          {/* 分割线 */}
+          <div className="px-4 sm:px-5">
+            <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
+          </div>
+
           {/* 导航菜单 */}
-          <nav className={cn("flex-1 py-4 sm:py-4 overflow-y-auto", sidebarCollapsed ? "px-2" : "px-3 sm:px-4")}>
-            <ul className={cn("space-y-1", sidebarCollapsed ? "space-y-6 sm:space-y-8" : "space-y-1")}>
-              {navItems.map((item) => {
+          <nav className={cn("flex-1 py-6 sm:py-8 overflow-y-auto space-y-2", sidebarCollapsed ? "px-2.5" : "px-3 sm:px-4")}>
+            <ul className="space-y-0.5">
+              {navItems.map((item, index) => {
                 const Icon = item.icon
+                const isActive = activeTab === item.id
                 return (
                   <li key={item.id}>
                     <button
@@ -187,17 +196,26 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
                         setIsMobileMenuOpen(false)
                       }}
                       className={cn(
-                        "w-full flex items-center rounded-xl text-left transition-all duration-200 group active:scale-95 touch-highlight",
-                        sidebarCollapsed ? "justify-center px-2 py-3 sm:py-4" : "space-x-2 sm:space-x-3 px-3 sm:px-4 py-3 sm:py-4 min-h-12 sm:min-h-14",
-                        activeTab === item.id
-                          ? "bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium"
-                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        "w-full flex items-center rounded-lg text-left transition-all duration-200 group active:scale-95 relative overflow-hidden",
+                        sidebarCollapsed ? "justify-center p-2.5 sm:p-3" : "space-x-3 px-3 sm:px-4 py-2.5 sm:py-3",
+                        isActive
+                          ? "bg-gradient-to-r from-primary-50 to-primary-100/50 dark:from-primary-900/30 dark:to-primary-900/10 text-primary-700 dark:text-primary-300 font-semibold shadow-sm"
+                          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                       )}
                       title={sidebarCollapsed ? item.label : undefined}
                     >
-                      <Icon className={cn("flex-shrink-0", sidebarCollapsed ? "h-6 w-6" : "h-5 w-5")} />
+                      {/* 左侧指示条 */}
+                      {isActive && !sidebarCollapsed && (
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary-500 to-primary-600" />
+                      )}
+                      
+                      <Icon className={cn(
+                        "flex-shrink-0 transition-all duration-200",
+                        sidebarCollapsed ? "h-6 w-6" : "h-5 w-5",
+                        isActive && "scale-110"
+                      )} />
                       {!sidebarCollapsed && (
-                        <span className="truncate text-sm sm:text-base">{item.label}</span>
+                        <span className="truncate text-sm sm:text-base font-medium">{item.label}</span>
                       )}
                     </button>
                   </li>
@@ -206,113 +224,110 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
             </ul>
           </nav>
 
-          {/* 底部 - 侧边栏中的操作区 (桌面端显示) */}
-          <div className={cn("border-t border-gray-200 dark:border-gray-700 flex-shrink-0 hidden lg:block", sidebarCollapsed ? "p-2" : "p-3 sm:p-4")}>
-            {/* 操作按钮区域 */}
+          {/* 底部操作区 (桌面端显示) */}
+          <div className={cn("hidden lg:flex flex-col flex-shrink-0", sidebarCollapsed ? "p-2.5" : "p-4 sm:p-5")}>
+            {/* 分割线 */}
+            <div className="mb-4">
+              <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent" />
+            </div>
+
+            {/* 操作按钮 */}
             <div className={cn(
-              "flex items-center gap-2",
+              "flex items-center gap-2 mb-4",
               sidebarCollapsed ? "flex-col" : "justify-between"
             )}>
-              {/* 主题切换按钮 */}
-              <div className={cn(
-                "flex items-center justify-center",
-                sidebarCollapsed ? "w-full" : ""
-              )}>
-                <ThemeToggle collapsed={sidebarCollapsed} />
-              </div>
-              
-              {/* 退出登录按钮 */}
+              <ThemeToggle collapsed={sidebarCollapsed} />
               <button
                 onClick={onLogout}
                 className={cn(
-                  "flex items-center justify-center gap-2 px-2 sm:px-3 py-2 sm:py-2.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg transition-all duration-200 group active:scale-95 min-h-10 sm:min-h-11",
-                  sidebarCollapsed ? "w-full" : "flex-1"
+                  "flex items-center justify-center gap-2 transition-all duration-200 group active:scale-95",
+                  sidebarCollapsed 
+                    ? "p-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg w-full"
+                    : "px-3 py-2.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex-1"
                 )}
                 title={sidebarCollapsed ? "退出登录" : ""}
               >
-                <LogOut className="h-4 w-4 flex-shrink-0 group-hover:rotate-12 transition-transform duration-200" />
+                <LogOut className="h-4 w-4 flex-shrink-0 group-hover:rotate-12 transition-transform duration-300" />
                 {!sidebarCollapsed && (
                   <span className="text-xs sm:text-sm font-medium">退出</span>
                 )}
               </button>
             </div>
+
             {!sidebarCollapsed && (
-              <div className="mt-3 sm:mt-4">
-                {/* 版本信息卡片 */}
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="space-y-3">
+                {/* 版本信息卡片 - 现代风格 */}
+                <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md hover:bg-white dark:hover:bg-gray-800 transition-all duration-200 cursor-default">
                   <div className="space-y-3">
-                    {/* 标题和版本 */}
+                    {/* 标题和状态 */}
                     <div className="flex justify-between items-start">
                       <div>
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">版本信息</h3>
-                        <p className="text-xs font-mono text-blue-600 dark:text-blue-400 mt-1">
+                        <h3 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">版本信息</h3>
+                        <p className="text-xs font-mono text-primary-600 dark:text-primary-400 mt-1.5 font-medium">
                           {backendVersion || '获取中...'}
                         </p>
                       </div>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span>
+                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         在线
                       </span>
                     </div>
                     
-                    {/* 开发人员信息 - 可展开/折叠 */}
-                    {isDevInfoExpanded ? (
-                      <div className="animate-in slide-in-from-top-2 duration-200">
-                        <div 
-                          className="flex justify-between items-center cursor-pointer pb-2"
-                          onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
-                        >
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">开发人员信息</span>
-                          <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <div className="text-xs">
-                            <p className="text-gray-500 dark:text-gray-400">前端</p>
-                            <p className="font-medium text-gray-800 dark:text-gray-200">DongShu</p>
-                          </div>
-                          <div className="text-xs">
-                            <p className="text-gray-500 dark:text-gray-400">后端</p>
-                            <p className="font-medium text-gray-800 dark:text-gray-200">onlyLTY</p>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div 
-                        className="flex items-center cursor-pointer py-1"
-                        onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
-                      >
-                        <span className="text-xs text-gray-600 dark:text-gray-400">显示开发人员</span>
-                        <ChevronRight className="h-3 w-3 text-gray-500 dark:text-gray-400 ml-1" />
-                      </div>
-                    )}
-                    
-                    {/* 操作和更新信息 */}
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-100 dark:border-gray-700">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        最后检查: {(new Date()).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      
-                      {hasBackendUpdate && (
-                        <div className="flex items-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 mr-1 animate-pulse"></span>
+                    {/* 开发人员信息 */}
+                    <div>
+                      {isDevInfoExpanded ? (
+                        <div className="animate-in slide-in-from-top-2 duration-200 space-y-2">
                           <button
-                            onClick={() => setShowUpdatePrompt(true)}
-                            className="text-xs font-medium text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300"
+                            onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
+                            className="flex justify-between items-center w-full pb-2"
                           >
-                            有更新
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">开发人员</span>
+                            <ChevronDown className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                           </button>
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <div className="text-xs bg-gray-50 dark:bg-gray-700/50 rounded p-2">
+                              <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">前端</p>
+                              <p className="font-medium text-gray-900 dark:text-white">DongShu</p>
+                            </div>
+                            <div className="text-xs bg-gray-50 dark:bg-gray-700/50 rounded p-2">
+                              <p className="text-gray-500 dark:text-gray-400 text-xs mb-0.5">后端</p>
+                              <p className="font-medium text-gray-900 dark:text-white">onlyLTY</p>
+                            </div>
+                          </div>
                         </div>
+                      ) : (
+                        <button
+                          onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
+                          className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 transition-colors w-full py-1"
+                        >
+                          <span>开发人员</span>
+                          <ChevronRight className="h-3 w-3" />
+                        </button>
                       )}
                     </div>
-
-                    {/* 构建时间 */}
-                    {buildDate && (
-                      <div className="pt-1">
+                    
+                    {/* 更新和构建信息 */}
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700/50 space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          检查: {(new Date()).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {hasBackendUpdate && (
+                          <button
+                            onClick={() => setShowUpdatePrompt(true)}
+                            className="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 animate-pulse"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                            有更新
+                          </button>
+                        )}
+                      </div>
+                      {buildDate && (
                         <p className="text-xs text-gray-500 dark:text-gray-400" title={formatVersionBuildDate(buildDate)}>
                           构建: {formatVersionBuildDate(buildDate)}
                         </p>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

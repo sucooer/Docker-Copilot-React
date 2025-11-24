@@ -15,6 +15,7 @@ import { containerAPI, progressAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getImageLogo } from '../config/imageLogos.js'
+import icons8Img from '../assets/icons8.png'
 
 // 格式化运行时间为中文
 function formatRunningTime(runningTime) {
@@ -989,7 +990,7 @@ export function Containers() {
                               {container.haveUpdate && (
                                 <span className="ml-2 inline-flex items-center justify-center px-1.5 sm:px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 dark:from-yellow-500 dark:to-yellow-600 animate-pulse shadow-md flex-shrink-0" title="有新版本可更新">
                                   <img 
-                                    src="/src/assets/icons8.png" 
+                                    src={icons8Img} 
                                     alt="更新" 
                                     className="h-4 w-4 flex-shrink-0"
                                     style={{ 

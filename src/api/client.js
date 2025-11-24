@@ -122,7 +122,7 @@ export const containerAPI = {
   restoreContainer: (filename) => {
     return apiClient.post(`/api/container/backups/${filename}/restore`)
   },
-  deleteBackup: (filename) => apiClient.delete(`/api/container/backups/${filename}`),
+  deleteBackup: (filename) => apiClient.delete(`/api/container/backups?filename=${encodeURIComponent(filename)}`),
   backupToCompose: () => apiClient.get('/api/container/backup2compose'),
 }
 

@@ -312,15 +312,12 @@ export function Backups() {
                           <HardDrive className="h-5 w-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 dark:text-white truncate">
-                            {formatFilename(backup)}
-                          </h4>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                            {backup}
-                          </p>
-                          <div className="mt-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                              {formatFilename(backup)}
+                            </h4>
                             <span className={cn(
-                              "text-xs font-medium px-2 py-1 rounded",
+                              "text-xs font-medium px-2 py-0.5 rounded flex-shrink-0",
                               getFileType(backup) === 'JSON'
                                 ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
                                 : "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200"
@@ -328,6 +325,9 @@ export function Backups() {
                               {getFileType(backup)}
                             </span>
                           </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {backup}
+                          </p>
                         </div>
                       </div>
                       

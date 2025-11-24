@@ -1251,34 +1251,35 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
         
         {/* 弹窗底部操作按钮 */}
         <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-700/30">
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-2">
             <button
               onClick={onClose}
               disabled={isActionProcessing || isUpdating}
-              className="btn-secondary px-4 py-2"
+              className="btn-secondary px-4 py-2 hidden sm:inline-block"
             >
               关闭
             </button>
             
-            <div className="flex space-x-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <button 
                 onClick={() => onUpdate(container.id)}
                 disabled={isActionProcessing || isUpdating}
-                className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-1 sm:gap-2 ${
                   isActionProcessing && currentAction === 'update'
                     ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
                     : 'bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600'
                 }`}
+                title="更新"
               >
                 {isActionProcessing && currentAction === 'update' ? (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                    更新中
+                    <RefreshCw className="h-4 w-4 animate-spin flex-shrink-0" />
+                    <span className="hidden sm:inline">更新中</span>
                   </>
                 ) : (
                   <>
-                    <Upload className="h-4 w-4 mr-1" />
-                    更新
+                    <Upload className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">更新</span>
                   </>
                 )}
               </button>
@@ -1288,42 +1289,44 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
                   <button 
                     onClick={() => handleContainerAction('stop')}
                     disabled={isActionProcessing || isUpdating}
-                    className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                    className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-1 sm:gap-2 ${
                       isActionProcessing && currentAction === 'stop'
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
                         : 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600'
                     }`}
+                    title="停止"
                   >
                     {isActionProcessing && currentAction === 'stop' ? (
                       <>
-                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                        停止中
+                        <RefreshCw className="h-4 w-4 animate-spin flex-shrink-0" />
+                        <span className="hidden sm:inline">停止中</span>
                       </>
                     ) : (
                       <>
-                        <Square className="h-4 w-4 mr-1" />
-                        停止
+                        <Square className="h-4 w-4 flex-shrink-0" />
+                        <span className="hidden sm:inline">停止</span>
                       </>
                     )}
                   </button>
                   <button 
                     onClick={() => handleContainerAction('restart')}
                     disabled={isActionProcessing || isUpdating}
-                    className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                    className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-1 sm:gap-2 ${
                       isActionProcessing && currentAction === 'restart'
                         ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
                         : 'bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-500 dark:hover:bg-yellow-600'
                     }`}
+                    title="重启"
                   >
                     {isActionProcessing && currentAction === 'restart' ? (
                       <>
-                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                        重启中
+                        <RefreshCw className="h-4 w-4 animate-spin flex-shrink-0" />
+                        <span className="hidden sm:inline">重启中</span>
                       </>
                     ) : (
                       <>
-                        <RotateCcw className="h-4 w-4 mr-1" />
-                        重启
+                        <RotateCcw className="h-4 w-4 flex-shrink-0" />
+                        <span className="hidden sm:inline">重启</span>
                       </>
                     )}
                   </button>
@@ -1332,26 +1335,35 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
                 <button 
                   onClick={() => handleContainerAction('start')}
                   disabled={isActionProcessing || isUpdating}
-                  className={`px-4 py-2 text-sm rounded-lg transition-colors flex items-center ${
+                  className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-1 sm:gap-2 ${
                     isActionProcessing && currentAction === 'start'
                       ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
                       : 'bg-green-600 text-white hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600'
                   }`}
+                  title="启动"
                 >
                   {isActionProcessing && currentAction === 'start' ? (
                     <>
-                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
-                      启动中
+                      <RefreshCw className="h-4 w-4 animate-spin flex-shrink-0" />
+                      <span className="hidden sm:inline">启动中</span>
                     </>
                   ) : (
                     <>
-                      <Play className="h-4 w-4 mr-1" />
-                      启动
+                      <Play className="h-4 w-4 flex-shrink-0" />
+                      <span className="hidden sm:inline">启动</span>
                     </>
                   )}
                 </button>
               )}
             </div>
+
+            <button
+              onClick={onClose}
+              disabled={isActionProcessing || isUpdating}
+              className="btn-secondary px-4 py-2 sm:hidden flex-shrink-0"
+            >
+              ✕
+            </button>
           </div>
         </div>
       </div>

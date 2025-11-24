@@ -246,7 +246,7 @@ export function Images() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {images.map((image) => (
               <div key={image.id} className="group card p-4 rounded-2xl hover:shadow-lg transition-all">
-                {/* 头部：图标和操作按钮 */}
+                {/* 头部：图标、名字、状态指示器和大小 */}
                 <div className="flex items-start gap-3 mb-4">
                   <div className="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <SafeImage
@@ -257,22 +257,35 @@ export function Images() {
                     />
                   </div>
                   
+                  {/* 竖线状态指示器 */}
+                  <div className="flex flex-col items-center justify-center h-10">
+                    {image.inUsed && (
+                      <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full flex-shrink-0" />
+                    )}
+                    {!image.inUsed && (
+                      <div className="w-1 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0" />
+                    )}
+                  </div>
+                  
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 dark:text-white truncate text-sm">
                       {image.name}
                     </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
-                      {image.tag}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center justify-between gap-2">
+                      <span className="truncate">{image.tag}</span>
+                      <span className={cn("font-semibold flex-shrink-0 whitespace-nowrap", getSizeColor(image.size))}>
+                        大小: {formatImageSize(image.size)}
+                      </span>
                     </p>
                   </div>
 
-                  {/* 悬停时显示的操作按钮 */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                  {/* 官网跳转按钮 - 始终显示 */}
+                  <div className="flex gap-1">
                     <a
                       href={`https://hub.docker.com/r/${image.name}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors active:scale-95"
                       title="在Docker Hub查看"
                     >
                       <Link className="h-4 w-4" />
@@ -282,21 +295,10 @@ export function Images() {
 
                 {/* 镜像信息 */}
                 <div className="space-y-2 text-xs mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">大小:</span>
-                    <span className={cn("font-semibold", getSizeColor(image.size))}>
-                      {formatImageSize(image.size)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">状态:</span>
-                    <span className={cn(
-                      "px-2 py-1 rounded text-xs font-medium",
-                      image.inUsed
-                        ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
-                        : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300"
-                    )}>
-                      {image.inUsed ? '使用中' : '未使用'}
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">ID:</span>
+                    <span className="font-mono text-gray-700 dark:text-gray-300 truncate text-xs">
+                      {image.id}
                     </span>
                   </div>
                 </div>

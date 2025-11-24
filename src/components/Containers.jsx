@@ -712,7 +712,7 @@ export function Containers() {
                 </div>
               )}
 
-              <div className="relative z-10 flex gap-3">
+              <div className="relative z-10 flex items-center gap-3">
                 {/* 图标 */}
                 <div className="flex-shrink-0">
                   {(() => {
@@ -761,26 +761,29 @@ export function Containers() {
                   })()}
                 </div>
 
+                {/* 状态指示器（放在图标和信息之间） */}
+                <div className="flex-shrink-0 flex items-center">
+                  <div className={cn(
+                    "w-1 h-8 rounded-full",
+                    getStatusIndicatorColor(container.status)
+                  )} />
+                </div>
+
                 {/* 容器信息 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 dark:text-white truncate text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
-                        {container.name}
-                      </h3>
+                      <div className="flex items-center">
+                        <h3 className="font-semibold text-gray-900 dark:text-white truncate text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                          {container.name}
+                        </h3>
+                        {container.haveUpdate && (
+                          <span className="ml-2 inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="有新版本" />
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                         {container.usingImage}
                       </p>
-                    </div>
-                    {/* 状态和更新指示器 */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full flex-shrink-0",
-                        getStatusColor(container.status)
-                      )} />
-                      {container.haveUpdate && (
-                        <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse flex-shrink-0" title="有新版本" />
-                      )}
                     </div>
                   </div>
 

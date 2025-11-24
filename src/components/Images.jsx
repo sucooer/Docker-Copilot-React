@@ -207,30 +207,30 @@ export function Images() {
       )}
 
       {/* 统计信息 */}
-      <div className="px-4 sm:px-6 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="card p-6 rounded-2xl">
-          <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
+      <div className="px-4 sm:px-6 py-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card p-4 sm:p-6 rounded-2xl">
+          <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
             {images.length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">总镜像数</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">总镜像数</div>
         </div>
-        <div className="card p-6 rounded-2xl">
-          <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+        <div className="card p-4 sm:p-6 rounded-2xl">
+          <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
             {images.filter(img => img.inUsed).length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">使用中</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">使用中</div>
         </div>
-        <div className="card p-6 rounded-2xl">
-          <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
+        <div className="card p-4 sm:p-6 rounded-2xl">
+          <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
             {images.filter(img => !img.inUsed).length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">未使用</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">未使用</div>
         </div>
-        <div className="card p-6 rounded-2xl">
-          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+        <div className="card p-4 sm:p-6 rounded-2xl">
+          <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
             {images.filter(img => img.tag === 'None' || img.tag === '<none>').length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">无Tag</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">无Tag</div>
         </div>
       </div>
 

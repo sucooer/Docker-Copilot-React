@@ -262,24 +262,24 @@ export function Backups() {
       )}
 
       {/* 统计信息 */}
-      <div className="px-4 sm:px-6 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="card p-6 rounded-2xl">
-          <div className="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
+      <div className="px-4 sm:px-6 py-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="card p-4 sm:p-6 rounded-2xl">
+          <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
             {backups.length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">总备份数</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">总备份数</div>
         </div>
-        <div className="card p-6 rounded-2xl">
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+        <div className="card p-4 sm:p-6 rounded-2xl">
+          <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
             {backups.filter(b => b.endsWith('.json')).length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">JSON 备份</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">JSON 备份</div>
         </div>
-        <div className="card p-6 rounded-2xl">
-          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+        <div className="card p-4 sm:p-6 rounded-2xl">
+          <div className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
             {backups.filter(b => b.endsWith('.yaml') || b.endsWith('.yml')).length}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">YAML 备份</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">YAML 备份</div>
         </div>
       </div>
 
@@ -312,15 +312,12 @@ export function Backups() {
                           <HardDrive className="h-5 w-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 dark:text-white truncate">
-                            {formatFilename(backup)}
-                          </h4>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                            {backup}
-                          </p>
-                          <div className="mt-2">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                              {formatFilename(backup)}
+                            </h4>
                             <span className={cn(
-                              "text-xs font-medium px-2 py-1 rounded",
+                              "text-xs font-medium px-2 py-0.5 rounded flex-shrink-0",
                               getFileType(backup) === 'JSON'
                                 ? "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200"
                                 : "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200"
@@ -328,6 +325,9 @@ export function Backups() {
                               {getFileType(backup)}
                             </span>
                           </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {backup}
+                          </p>
                         </div>
                       </div>
                       

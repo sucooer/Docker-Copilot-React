@@ -248,12 +248,12 @@ export function Images() {
               <div key={image.id} className="group card p-4 rounded-2xl hover:shadow-lg transition-all">
                 {/* 头部：图标和操作按钮 */}
                 <div className="flex items-start gap-3 mb-4">
-                  <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                     <SafeImage
                       src={getImageLogo(image.name)}
                       alt={image.name}
                       className="h-10 w-10 object-cover"
-                      fallback={<HardDrive className="h-5 w-5 text-white" />}
+                      fallback={<HardDrive className="h-5 w-5 text-gray-500 dark:text-gray-400" />}
                     />
                   </div>
                   

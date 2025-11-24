@@ -16,6 +16,54 @@ import { cn } from '../utils/cn.js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getImageLogo } from '../config/imageLogos.js'
 
+// 格式化运行时间为中文
+function formatRunningTime(runningTime) {
+  if (!runningTime) return '未知'
+  
+  // 如果已经是中文格式，直接返回
+  if (runningTime.includes('小时') || runningTime.includes('分钟') || runningTime.includes('秒')) {
+    return runningTime
+  }
+  
+  // 尝试解析英文格式
+  // 支持格式: "2h 30m", "2 hours 30 minutes", "30m", "30 minutes", "1 day 2h 30m" 等
+  let hours = 0
+  let minutes = 0
+  let days = 0
+  
+  // 提取天数
+  const dayMatch = runningTime.match(/(\d+)\s*(?:day|d)/)
+  if (dayMatch) {
+    days = parseInt(dayMatch[1])
+  }
+  
+  // 提取小时
+  const hourMatch = runningTime.match(/(\d+)\s*(?:hour|h)/)
+  if (hourMatch) {
+    hours = parseInt(hourMatch[1])
+  }
+  
+  // 提取分钟
+  const minMatch = runningTime.match(/(\d+)\s*(?:minute|min|m)/)
+  if (minMatch) {
+    minutes = parseInt(minMatch[1])
+  }
+  
+  // 构建中文输出
+  let result = ''
+  if (days > 0) {
+    result += `${days}天 `
+  }
+  if (hours > 0) {
+    result += `${hours}小时 `
+  }
+  if (minutes > 0 || (days === 0 && hours === 0)) {
+    result += `${minutes}分钟`
+  }
+  
+  return result.trim()
+}
+
 export function Containers() {
   const queryClient = useQueryClient()
   const [selectedContainer, setSelectedContainer] = useState(null)
@@ -25,6 +73,8 @@ export function Containers() {
   // 添加操作状态跟踪
   const [containerActions, setContainerActions] = useState({}) // 跟踪每个容器的操作状态
   const [updateTasks, setUpdateTasks] = useState({}) // 跟踪更新任务
+  // 添加筛选状态
+  const [filterStatus, setFilterStatus] = useState(null) // null 表示显示全部
 
   // 自定义确认弹窗状态
   const [confirmModal, setConfirmModal] = useState({
@@ -554,6 +604,10 @@ export function Containers() {
           0% { background-position: -200% 0; }
           100% { background-position: 200% 0; }
         }
+        @keyframes bounceArrow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
       `}</style>
       
       {/* 自定义确认弹窗 */}
@@ -696,19 +750,138 @@ export function Containers() {
         )}
       </div>
 
+      {/* 统计信息 */}
+      <div className="px-4 sm:px-6 py-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <button
+          onClick={() => setFilterStatus(null)}
+          className={cn(
+            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
+            filterStatus === null ? "ring-2 ring-primary-400 dark:ring-primary-500" : ""
+          )}
+        >
+          <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
+            {containers.length}
+          </div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">总容器数</div>
+        </button>
+        <button
+          onClick={() => setFilterStatus('running')}
+          className={cn(
+            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
+            filterStatus === 'running' ? "ring-2 ring-green-400 dark:ring-green-500" : ""
+          )}
+        >
+          <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+            {containers.filter(c => c.status === 'running').length}
+          </div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">运行中</div>
+        </button>
+        <button
+          onClick={() => setFilterStatus('stopped')}
+          className={cn(
+            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
+            filterStatus === 'stopped' ? "ring-2 ring-red-400 dark:ring-red-500" : ""
+          )}
+        >
+          <div className="text-2xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-2">
+            {containers.filter(c => c.status && c.status.toLowerCase() !== 'running').length}
+          </div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">已停止</div>
+        </button>
+        <button
+          onClick={() => setFilterStatus('update')}
+          className={cn(
+            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
+            filterStatus === 'update' ? "ring-2 ring-yellow-400 dark:ring-yellow-500" : ""
+          )}
+        >
+          <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
+            {containers.filter(c => c.haveUpdate).length}
+          </div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">有更新</div>
+        </button>
+      </div>
+
       {/* 容器列表 */}
       <div className="px-4 sm:px-6 py-4">
-        {selectedContainers.length > 0 && (
-          <div className="mb-4 p-3 bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg flex items-center justify-between">
-            <span className="text-sm text-primary-700 dark:text-primary-300">
-              已选中 {selectedContainers.length} 个容器（使用 Ctrl/Cmd+点击 来切换选择，或直接点击卡片打开详情）
-            </span>
+        {(filterStatus || selectedContainers.length > 0) && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-blue-700 dark:text-blue-300">
+                  {filterStatus && (
+                    <>
+                      筛选中：
+                      {filterStatus === 'running' && '运行中容器 '}
+                      {filterStatus === 'stopped' && '已停止容器 '}
+                      {filterStatus === 'update' && '有更新容器 '}
+                    </>
+                  )}
+                  {!filterStatus && selectedContainers.length > 0 && (
+                    <>
+                      已选中 {selectedContainers.length} 个容器（使用 Ctrl/Cmd+点击 来切换选择，或直接点击卡片打开详情）
+                    </>
+                  )}
+                  {filterStatus && selectedContainers.length > 0 && (
+                    <>
+                      &nbsp;·&nbsp;已选中 {selectedContainers.length} 个容器
+                    </>
+                  )}
+                </span>
+                {filterStatus && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setFilterStatus(null)
+                        setSelectedContainers([])
+                        setIsBatchMode(false)
+                      }}
+                      className="px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-100 bg-blue-100 dark:bg-blue-800/50 rounded transition-colors"
+                    >
+                      清除筛选
+                    </button>
+                    <button
+                      onClick={() => {
+                        const filteredContainers = containers.filter((container) => {
+                          if (!filterStatus) return true
+                          if (filterStatus === 'running') return container.status && container.status.toLowerCase() === 'running'
+                          if (filterStatus === 'stopped') return container.status && container.status.toLowerCase() !== 'running'
+                          if (filterStatus === 'update') return container.haveUpdate
+                          return true
+                        })
+                        setSelectedContainers(filteredContainers.map(c => c.id))
+                        setIsBatchMode(true)
+                      }}
+                      className="px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-100 bg-blue-100 dark:bg-blue-800/50 rounded transition-colors"
+                    >
+                      全选结果
+                    </button>
+                  </>
+                )}
+              </div>
+              {selectedContainers.length > 0 && !filterStatus && (
+                <button
+                  onClick={() => setSelectedContainers([])}
+                  className="px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-100 bg-blue-100 dark:bg-blue-800/50 rounded transition-colors"
+                >
+                  取消选择
+                </button>
+              )}
+            </div>
           </div>
         )}
         
         {containers.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {containers.map((container) => {
+            {containers
+              .filter((container) => {
+                if (!filterStatus) return true
+                if (filterStatus === 'running') return container.status && container.status.toLowerCase() === 'running'
+                if (filterStatus === 'stopped') return container.status && container.status.toLowerCase() !== 'running'
+                if (filterStatus === 'update') return container.haveUpdate
+                return true
+              })
+              .map((container) => {
               const isSelected = selectedContainers.includes(container.id)
               return (
                 <div key={container.id} className="group">
@@ -814,7 +987,9 @@ export function Containers() {
                                 {container.name}
                               </h3>
                               {container.haveUpdate && (
-                                <span className="ml-2 inline-block w-2 h-2 rounded-full bg-yellow-500 animate-pulse" title="有新版本" />
+                                <span className="ml-2 inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold text-white bg-gradient-to-r from-yellow-400 to-yellow-500 dark:from-yellow-500 dark:to-yellow-600 animate-pulse shadow-md" title="有新版本可更新">
+                                  <span style={{ animation: 'bounceArrow 1.5s ease-in-out infinite' }}>⬆</span>
+                                </span>
                               )}
                             </div>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
@@ -823,20 +998,23 @@ export function Containers() {
                           </div>
                         </div>
 
-                        {/* 运行时间 */}
-                        {container.status === 'running' && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            运行: {container.runningTime}
-                          </div>
-                        )}
-
-                        {/* 操作进度 */}
-                        {containerActions[container.id]?.loading && containerActions[container.id]?.progress && (
-                          <p className="text-xs text-blue-600 dark:text-blue-400 truncate mt-1 flex items-center gap-1">
-                            <RefreshCw className="h-3 w-3 animate-spin" />
-                            <span>{containerActions[container.id].progress}</span>
-                          </p>
-                        )}
+                        {/* 统一高度的信息行 - 显示运行时间或状态 */}
+                        <div className="h-5 mt-1">
+                          {containerActions[container.id]?.loading && containerActions[container.id]?.progress ? (
+                            <p className="text-xs text-blue-600 dark:text-blue-400 truncate flex items-center gap-1">
+                              <RefreshCw className="h-3 w-3 animate-spin flex-shrink-0" />
+                              <span>{containerActions[container.id].progress}</span>
+                            </p>
+                          ) : container.status === 'running' ? (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              运行: {formatRunningTime(container.runningTime)}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              状态: 已停止
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

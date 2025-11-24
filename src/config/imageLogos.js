@@ -1,39 +1,60 @@
 // 内置常用镜像logo配置
-// 格式: { "镜像名称": "logo URL" }
-// 格式: { "镜像名称": "logo 地址" }
-// 格式: { "镜像名称": "logo  Base64" }
+// 格式: { "镜像名称": "logo 文件路径" }
 // 支持镜像名称匹配，如 "nginx" 会匹配 "nginx:latest", "nginx:alpine" 等
 
+// 导入图片资源
+import MediaSaberLogo from '../assets/logos/media-saber.png';
+import MoviepilotLogo from '../assets/logos/moviepilot.png';
+import DockerCopilotLogo from '../assets/logos/docker-copilot.png';
+import MTPhotos from '../assets/logos/mt-photos.png';
+import ITToolsLogo from '../assets/logos/it-tools.webp';
+import SubStoreLogo from '../assets/logos/sub-store.webp';
+import JellyfinLogo from '../assets/logos/jellyfin.png';
+import RedisLogo from '../assets/logos/redis.png';
+import PostgresLogo from '../assets/logos/postgres.png';
+import SunPanelLogo from '../assets/logos/sun-panel.png';
+import QinglongLogo from '../assets/logos/qinglong.svg';
+import TransmissionLogo from '../assets/logos/transmission.png';
+import QBittorrentLogo from '../assets/logos/qbittorrent.webp';
+import FnDeskLogo from '../assets/logos/fndesk.png';
+import FNTVLogo from '../assets/logos/fntv.png';
+import CookiecloudLogo from '../assets/logos/cookiecloud.png';
+import CodeServerLogo from '../assets/logos/code-server.png';
+import IYUULogo from '../assets/logos/iyuu.png';
+import LuckyLogo from '../assets/logos/lucky.png';
+import EmbyserverLogo from '../assets/logos/embyserver.png';
+import AudiobookshelfLogo from '../assets/logos/audiobookshelf.png';
+import MySQLLogo from '../assets/logos/mysql.png';
+
 export const builtInImageLogos = {
-  "xylplm/media-saber": "https://icon.xiaoge.org/images/docker/MediaSaber.png",
-  "jxxghp/moviepilot-v2": "https://raw.dongshu.fun:99/dc/146.png",
-  "0nlylty/dockercopilot": "https://icon.xiaoge.org/images/docker/DockerCopilot-3.png",
-  "mtphotos/mt-photos": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
-  "kqstone/mt-photos-insightface-unofficial": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
-  "mtphotos/mt-photos-ai": "https://icon.xiaoge.org/images/docker/MT-Photos.png",
-  "corentinth/it-tools": "https://raw.dongshu.fun:99/dc/IT-Tools_w7z24.webp",
-  "xream/sub-store": "https://raw.dongshu.fun:99/dc/Sub-Store.webp",
-  "nyanmisaka/jellyfin": "https://raw.dongshu.fun:99/dc/132.png",
-  "redis": "https://raw.dongshu.fun:99/dc/165.png",
-  "postgres": "https://raw.dongshu.fun:99/dc/159.png",
-  "hslr/sun-panel": "https://raw.dongshu.fun:99/dc/175.png",
-  "whyour/qinglong": "https://qn.whyour.cn/favicon.svg",
-  "linuxserver/transmission": "https://raw.dongshu.fun:99/dc/189.png",
-  "linuxserver/qbittorrent": "https://raw.dongshu.fun:99/dc/QBittorrent_Q41Q0.webp",
-  "imgzcq/fndesk": "https://raw.dongshu.fun:99/dc/718.png",
-  "qiaokes/fntv-record-view": "https://raw.dongshu.fun:99/dc/718.png",
-  "easychen/cookiecloud": "https://raw.dongshu.fun:99/dc/100.png",
-  "codercom/code-server": "https://icon.xiaoge.org/images/website/vscode.png",
-  "iyuucn/iyuuplus": "https://icon.xiaoge.org/images/docker/IYUU.png",
-  "iyuucn/iyuuplus-dev-nodb": "https://icon.xiaoge.org/images/docker/IYUU.png",
-  "gdy666/lucky": "https://raw.dongshu.fun:99/dc/4.png",
-  "amilys/embyserver":"https://cdn.statically.io/img/laji.o--o.xyz/i/2025/11/21/204626.png",
-  "audiobookshelf": "https://cdn.statically.io/img/laji.o--o.xyz/i/2025/11/21/205512.png",
-  "mysql": "https://cdn.statically.io/img/laji.o--o.xyz/i/2025/11/21/205721.png",
-  "postgres": "https://cdn.statically.io/img/laji.o--o.xyz/i/2025/11/21/205818.png",
+  "xylplm/media-saber": MediaSaberLogo,
+  "jxxghp/moviepilot-v2": MoviepilotLogo,
+  "0nlylty/dockercopilot": DockerCopilotLogo,
+  "mtphotos/mt-photos": MTPhotos,
+  "kqstone/mt-photos-insightface-unofficial": MTPhotos,
+  "mtphotos/mt-photos-ai": MTPhotos,
+  "corentinth/it-tools": ITToolsLogo,
+  "xream/sub-store": SubStoreLogo,
+  "nyanmisaka/jellyfin": JellyfinLogo,
+  "redis": RedisLogo,
+  "postgres": PostgresLogo,
+  "hslr/sun-panel": SunPanelLogo,
+  "whyour/qinglong": QinglongLogo,
+  "linuxserver/transmission": TransmissionLogo,
+  "linuxserver/qbittorrent": QBittorrentLogo,
+  "imgzcq/fndesk": FnDeskLogo,
+  "qiaokes/fntv-record-view": FNTVLogo,
+  "easychen/cookiecloud": CookiecloudLogo,
+  "codercom/code-server": CodeServerLogo,
+  "iyuucn/iyuuplus": IYUULogo,
+  "iyuucn/iyuuplus-dev-nodb": IYUULogo,
+  "gdy666/lucky": LuckyLogo,
+  "amilys/embyserver": EmbyserverLogo,
+  "audiobookshelf": AudiobookshelfLogo,
+  "mysql": MySQLLogo,
 };
 
-// 获取镜像的logo URL
+// 获取镜像的logo
 // 优先级: 内置logo > 用户自定义 > 默认图标
 export const getImageLogo = (imageName, customLogos = {}) => {
   // 先检查内置logo（优先级最高）
@@ -50,7 +71,7 @@ export const getImageLogo = (imageName, customLogos = {}) => {
     return builtInImageLogos[simpleName];
   }
 
-  // 如果仍未匹配，使用关键字（子串）匹配：查找内置映射中是否有任意键是 baseImageName 或 simpleName 的子串
+  // 如果仍未匹配，使用关键字（子串）匹配
   for (const [key, url] of Object.entries(builtInImageLogos)) {
     if (!key) continue;
     try {
@@ -62,7 +83,7 @@ export const getImageLogo = (imageName, customLogos = {}) => {
     }
   }
 
-  // 再检查用户自定义的logo（支持 imageName、baseImageName、simpleName）
+  // 再检查用户自定义的logo
   if (customLogos[imageName]) {
     return customLogos[imageName];
   }
@@ -89,7 +110,7 @@ export const hasBuiltInLogo = (imageName) => {
   const simpleName = baseImageName.split('/').pop();
   if (builtInImageLogos[simpleName]) return true;
 
-  // 关键字（子串）匹配：如果任何内置键是 baseImageName 或 simpleName 的子串，则视为存在
+  // 关键字（子串）匹配
   for (const key of Object.keys(builtInImageLogos)) {
     if (!key) continue;
     try {
@@ -99,51 +120,4 @@ export const hasBuiltInLogo = (imageName) => {
     }
   }
   return false;
-};
-
-// srchttps://raw.dongshu.fun:99/dc 文件夹中的可用图片文件列表
-export const availableImageFiles = [
-  "100.png", "132.png", "146.png", "159.png", "165.png", "17.png", 
-  "175.png", "189.png", "4.png", "718.png", "IT-Tools_w7z24.webp", 
-  "QBittorrent_Q41Q0.webp", "Sub-Store.webp"
-];
-
-// 快速映射函数：将图片文件名映射到完整的URL路径
-export const mapImageFile = (fileName) => {
-  return `https://raw.dongshu.fun:99/dc/${fileName}`;
-};
-
-// 批量映射函数：通过图片文件名快速创建镜像logo映射
-export const createImageMapping = (mappings) => {
-  const result = {};
-  for (const [imageName, fileName] of Object.entries(mappings)) {
-    result[imageName] = mapImageFile(fileName);
-  }
-  return result;
-};
-
-// 添加或更新镜像logo配置的便捷函数
-export const addImageLogo = (imageName, fileName) => {
-  const logoUrl = mapImageFile(fileName);
-  builtInImageLogos[imageName] = logoUrl;
-  return logoUrl;
-};
-
-// 批量添加镜像logo配置
-export const addMultipleImageLogos = (mappings) => {
-  const newMappings = createImageMapping(mappings);
-  Object.assign(builtInImageLogos, newMappings);
-  return newMappings;
-};
-
-// 获取所有可用的图片文件URL列表
-export const getAvailableImageUrls = () => {
-  return availableImageFiles.map(fileName => mapImageFile(fileName));
-};
-
-// 根据部分文件名搜索可用的图片文件
-export const searchImageFiles = (searchTerm) => {
-  return availableImageFiles.filter(fileName => 
-    fileName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Auth } from './components/Auth.jsx'
-import { Sidebar } from './components/Header.jsx'
+import { Sidebar, MobileBottomNav } from './components/Header.jsx'
 import { Containers } from './components/Containers.jsx'
 import { Images } from './components/Images.jsx'
 import { Backups } from './components/Backups.jsx'
@@ -148,7 +148,7 @@ function AppContent() {
         "overflow-y-auto",
         "min-h-screen",
         windowWidth < 768 
-          ? '' 
+          ? 'pb-[calc(64px+env(safe-area-inset-bottom))]' 
           : windowWidth < 1024 
             ? 'ml-20' 
             : isSidebarCollapsed 
@@ -159,6 +159,11 @@ function AppContent() {
           {renderContent()}
         </div>
       </main>
+      <MobileBottomNav 
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        windowWidth={windowWidth}
+      />
     </div>
   )
 }

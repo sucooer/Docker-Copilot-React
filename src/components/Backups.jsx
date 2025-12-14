@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  HardDrive, 
-  Trash2, 
-  RefreshCw, 
+import {
+  HardDrive,
+  Trash2,
+  RefreshCw,
   AlertCircle,
   CheckCircle,
   RotateCcw,
@@ -20,7 +20,7 @@ export function Backups() {
   const [isDeleting, setIsDeleting] = useState({})
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
-  
+
   // 自定义确认弹窗状态
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -30,7 +30,7 @@ export function Backups() {
     onCancel: null,
     type: 'warning' // warning, danger
   })
-  
+
   // 成功弹窗状态
   const [successModal, setSuccessModal] = useState({ isOpen: false, message: '' })
 
@@ -38,7 +38,7 @@ export function Backups() {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const response = await containerAPI.listBackups()
       if (response.data && (response.data.code === 0 || response.data.code === 200)) {
         setBackups(response.data.data || [])
@@ -63,7 +63,7 @@ export function Backups() {
       setIsBackingUp(true)
       setSuccess(null)
       setError(null)
-      
+
       const response = await containerAPI.backupContainer()
       if (response.data && (response.data.code === 0 || response.data.code === 200)) {
         setSuccessModal({ isOpen: true, message: '备份创建成功' })
@@ -76,7 +76,7 @@ export function Backups() {
       setError(error.response?.data?.msg || error.message || '备份创建失败')
     } finally {
       setIsBackingUp(false)
-      
+
       // 3秒后清除成功消息
       setTimeout(() => setSuccessModal({ isOpen: false, message: '' }), 3000)
     }
@@ -87,7 +87,7 @@ export function Backups() {
       setIsBackingUp(true)
       setSuccess(null)
       setError(null)
-      
+
       const response = await containerAPI.backupToCompose()
       if (response.data && (response.data.code === 0 || response.data.code === 200)) {
         setSuccessModal({ isOpen: true, message: 'Compose备份创建成功' })
@@ -100,7 +100,7 @@ export function Backups() {
       setError(error.response?.data?.msg || error.message || 'Compose备份创建失败')
     } finally {
       setIsBackingUp(false)
-      
+
       // 3秒后清除成功消息
       setTimeout(() => setSuccessModal({ isOpen: false, message: '' }), 3000)
     }
@@ -111,11 +111,11 @@ export function Backups() {
       setIsLoading(true)
       setError(null)
       setSuccess(null)
-      
+
       console.log('开始恢复备份:', filename)
       const response = await containerAPI.restoreContainer(filename)
       console.log('恢复备份响应:', response.data)
-      
+
       if (response.data && (response.data.code === 0 || response.data.code === 200)) {
         setSuccessModal({ isOpen: true, message: `备份 ${filename} 恢复成功` })
       } else {
@@ -130,9 +130,9 @@ export function Backups() {
         message: error.message,
         url: error.config?.url
       })
-      
+
       let errorMsg = `备份 ${filename} 恢复失败`
-      
+
       if (error.response?.status === 404) {
         // 404 可能是 API 端点问题，而不是文件不存在
         errorMsg = error.response?.data?.msg || `恢复失败: ${error.response?.statusText || '请求错误'}`
@@ -141,14 +141,14 @@ export function Backups() {
       } else if (error.message) {
         errorMsg = error.message
       }
-      
+
       setError(errorMsg)
     } finally {
       setIsLoading(false)
-      
+
       // 3秒后清除成功消息
       setTimeout(() => setSuccessModal({ isOpen: false, message: '' }), 3000)
-      
+
       // 刷新备份列表
       fetchBackups()
     }
@@ -175,20 +175,20 @@ export function Backups() {
       setIsDeleting(prev => ({ ...prev, [filename]: true }))
       setError(null)
       setSuccess(null)
-      
+
       console.log('🗑️ 开始删除备份:', filename)
       console.log('📝 文件名编码前:', filename)
       console.log('📝 文件名编码后:', encodeURIComponent(filename))
-      
+
       const response = await containerAPI.deleteBackup(filename)
-      
+
       console.log('✅ 删除备份响应:', {
         status: response.status,
         statusText: response.statusText,
         headers: response.headers,
         data: response.data
       })
-      
+
       // 删除成功的各种情况
       if (response.status === 200 || response.status === 204 || response.status === 204) {
         console.log('✨ 删除成功！')
@@ -197,7 +197,7 @@ export function Backups() {
         setBackups(backups.filter(backup => backup !== filename))
         return
       }
-      
+
       // 检查响应体中的状态
       if (response.data) {
         if (response.data.code === 0 || response.data.code === 200 || response.data.code === 204) {
@@ -212,12 +212,12 @@ export function Backups() {
           return
         }
       }
-      
+
       // 如果走到这里，说明删除可能成功但响应格式不标准
       console.log('⚠️ 响应格式不标准，假设删除成功')
       setSuccessModal({ isOpen: true, message: `备份 ${filename} 删除成功` })
       setBackups(backups.filter(backup => backup !== filename))
-      
+
     } catch (error) {
       console.error('❌ 删除备份失败:', {
         status: error.response?.status,
@@ -226,9 +226,9 @@ export function Backups() {
         message: error.message,
         config: error.config?.url
       })
-      
+
       let errorMsg = `备份 ${filename} 删除失败`
-      
+
       if (error.response?.status === 404) {
         errorMsg = `404 错误: 端点不存在或文件不存在 - ${error.response?.data?.msg || ''}`
       } else if (error.response?.status === 401 || error.response?.status === 403) {
@@ -240,7 +240,7 @@ export function Backups() {
       } else if (error.message) {
         errorMsg = error.message
       }
-      
+
       setError(errorMsg)
     } finally {
       setIsDeleting(prev => {
@@ -248,7 +248,7 @@ export function Backups() {
         delete newState[filename]
         return newState
       })
-      
+
       // 3秒后清除成功消息
       setTimeout(() => setSuccessModal({ isOpen: false, message: '' }), 3000)
     }
@@ -284,18 +284,18 @@ export function Backups() {
   // 按日期分组备份文件（用于时间线视图）
   const groupBackupsByDate = (backupList) => {
     const groups = {}
-    
+
     backupList.forEach(backup => {
       // 从文件名中提取日期部分
       const dateMatch = backup.match(/backup-(\d{4}-\d{2}-\d{2})/)
       const date = dateMatch ? dateMatch[1] : '未知日期'
-      
+
       if (!groups[date]) {
         groups[date] = []
       }
       groups[date].push(backup)
     })
-    
+
     // 转换为数组并按日期排序（最新的在前）
     return Object.entries(groups)
       .sort(([dateA], [dateB]) => new Date(dateB) - new Date(dateA))
@@ -342,7 +342,7 @@ export function Backups() {
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 {confirmModal.title}
               </h3>
-              <button 
+              <button
                 onClick={confirmModal.onCancel}
                 className="text-gray-400 hover:text-gray-500 dark:text-gray-400 dark:hover:text-gray-300"
               >
@@ -376,16 +376,16 @@ export function Backups() {
           </div>
         </div>
       )}
-      
+
       {/* 页面头部 */}
-        <div className="px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
+      <div className="px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">备份管理</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">备份管理</h2>
             <p className="text-gray-600 dark:text-gray-400">创建、恢复和删除容器备份</p>
           </div>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={handleBackupToCompose}
               disabled={isBackingUp}
               className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-200 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors disabled:opacity-50"
@@ -393,7 +393,7 @@ export function Backups() {
               <FileCode className={`h-4 w-4 ${isBackingUp ? 'animate-spin' : ''}`} />
               <span className="text-sm font-medium">YAML</span>
             </button>
-            <button 
+            <button
               onClick={handleBackup}
               disabled={isBackingUp}
               className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
@@ -401,7 +401,7 @@ export function Backups() {
               <Save className={`h-4 w-4 ${isBackingUp ? 'animate-spin' : ''}`} />
               <span className="text-sm font-medium">JSON</span>
             </button>
-            <button 
+            <button
               onClick={fetchBackups}
               disabled={isLoading}
               className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
@@ -434,7 +434,7 @@ export function Backups() {
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100 hover:scale-105">
             {/* 顶部装饰条 */}
             <div className="h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"></div>
-            
+
             <div className="p-8 flex flex-col items-center text-center">
               {/* 成功图标容器 - 带脉冲动画 */}
               <div className="relative mb-6">
@@ -443,20 +443,20 @@ export function Backups() {
                   <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400 animate-bounceIn" />
                 </div>
               </div>
-              
+
               {/* 标题 */}
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 操作成功
               </h3>
-              
+
               {/* 分隔线 */}
               <div className="w-12 h-1 bg-gradient-to-r from-transparent via-green-400 to-transparent rounded-full mb-4"></div>
-              
+
               {/* 消息内容 */}
               <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-8">
                 {successModal.message}
               </p>
-              
+
               {/* 按钮 */}
               <button
                 onClick={() => setSuccessModal({ isOpen: false, message: '' })}
@@ -465,7 +465,7 @@ export function Backups() {
                 完成
               </button>
             </div>
-            
+
             {/* 底部装饰 */}
             <div className="h-0.5 bg-gradient-to-r from-transparent via-green-200 dark:via-green-800 to-transparent"></div>
           </div>
@@ -514,7 +514,7 @@ export function Backups() {
                     {dateBackups.length} 个
                   </span>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {dateBackups.map((backup) => (
                     <div key={backup} className="group card p-4 rounded-2xl hover:shadow-lg transition-all">
@@ -541,7 +541,7 @@ export function Backups() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
                         <button
                           onClick={() => showRestoreConfirm(backup)}

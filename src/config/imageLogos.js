@@ -94,6 +94,23 @@ export const getImageLogo = (imageName, customLogos = {}) => {
     return customLogos[simpleName];
   }
 
+  // 尝试自定义图标的模糊匹配
+  for (const [key, url] of Object.entries(customLogos)) {
+    if (!key) continue;
+    try {
+      // 检查key是否是imageName的前缀（处理tag不同的情况）
+      if (baseImageName === key || baseImageName.startsWith(key + ':') || baseImageName.startsWith(key + '/')) {
+        return url;
+      }
+      // 反向检查：如果自定义图标配置的是 nginx:latest，但当前是 nginx
+      if (key.split(':')[0] === baseImageName) {
+        return url;
+      }
+    } catch (e) {
+      // 忽略异常
+    }
+  }
+
   // 没有找到logo，返回null
   return null;
 };

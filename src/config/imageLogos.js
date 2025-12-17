@@ -25,6 +25,13 @@ import LuckyLogo from '../assets/logos/lucky.png';
 import EmbyserverLogo from '../assets/logos/embyserver.png';
 import AudiobookshelfLogo from '../assets/logos/audiobookshelf.png';
 import MySQLLogo from '../assets/logos/mysql.png';
+import OneApiLogo from '../assets/logos/one-api.png';
+import QDLogo from '../assets/logos/qd.png';
+import OneHubogo from '../assets/logos/one-hub.png';
+import ByteMuseLogo from '../assets/logos/byte-muse.jpg';
+import NextChatLogo from '../assets/logos/next-chat.png';
+import MdcNgLogo from '../assets/logos/mdc-ng.png';
+import RichDogLogo from '../assets/logos/rich-dog.svg';
 
 export const builtInImageLogos = {
   "xylplm/media-saber": MediaSaberLogo,
@@ -52,6 +59,13 @@ export const builtInImageLogos = {
   "amilys/embyserver": EmbyserverLogo,
   "audiobookshelf": AudiobookshelfLogo,
   "mysql": MySQLLogo,
+  "qdtoday/qd": QDLogo,
+  "songquanpeng/one-api": OneApiLogo,
+  "martialbe/one-api": OneHubogo,
+  "envyafish/byte-muse":ByteMuseLogo,
+  "yidadaa/chatgpt-next-web":NextChatLogo,
+  "mdcng/mdc":MdcNgLogo,
+  "zhaoyangguang/rebatedog":RichDogLogo,
 };
 
 // 获取镜像的logo

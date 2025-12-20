@@ -8,27 +8,27 @@ function getAPIBaseURL() {
     console.log('Using build-time API URL:', import.meta.env.VITE_API_BASE_URL)
     return import.meta.env.VITE_API_BASE_URL
   }
-  
+
   // 2. 检查全局变量（注入的配置）
   if (typeof window !== 'undefined' && window.__API_BASE_URL) {
     console.log('Using injected API URL:', window.__API_BASE_URL)
     return window.__API_BASE_URL
   }
-  
+
   // 3. 检查 localStorage（用户保存的地址）
   const savedURL = localStorage.getItem('api_base_url')
   if (savedURL) {
     console.log('Using localStorage API URL:', savedURL)
     return savedURL
   }
-  
+
   // 4. 使用当前主机
   if (typeof window !== 'undefined' && window.location.host) {
     const currentHostURL = `${window.location.protocol}//${window.location.host}`
     console.log('Using current host API URL:', currentHostURL)
     return currentHostURL
   }
-  
+
   // 5. 最后的默认值
   const fallbackURL = 'http://localhost'
   console.log('Using fallback API URL:', fallbackURL)
@@ -129,7 +129,19 @@ export const containerAPI = {
 // 镜像相关API
 export const imageAPI = {
   getImages: () => apiClient.get('/api/images'),
+  getIcons: () => apiClient.get('/api/icons'),
   deleteImage: (id, force = false) => apiClient.delete(`/api/image/${id}?force=${force}`),
+  uploadIcon: (file, imageName, containerName) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('imageName', imageName)
+    if (containerName) {
+      formData.append('containerName', containerName)
+    }
+    return apiClient.post('/api/icons', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
 }
 
 // 进度查询API

@@ -10,6 +10,8 @@ import { ThemeProvider } from './hooks/useTheme.jsx'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cn } from './utils/cn.js'
 
+import { containerAPI, imageAPI } from './api/client.js'
+
 // 创建一个全局的QueryClient实例
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,7 +50,22 @@ function AppContent() {
     if (token) {
       setIsAuthenticated(true)
     }
-    
+
+    // 同步图标配置
+    const syncIcons = async () => {
+      try {
+        const response = await imageAPI.getIcons()
+        if (response.data.code === 200 || response.data.code === 0) {
+          const icons = response.data.data
+          // 简单的全量更新，以后如果支持前端删除，可能需要合并逻辑
+          localStorage.setItem('docker_copilot_image_logos', JSON.stringify(icons))
+        }
+      } catch (error) {
+        console.error('Failed to sync icons:', error)
+      }
+    }
+    syncIcons()
+
     // 监听storage事件，当其他标签页修改localStorage时更新认证状态
     const handleStorageChange = (e) => {
       if (e.key === 'docker_copilot_token') {
@@ -59,9 +76,9 @@ function AppContent() {
         }
       }
     }
-    
+
     window.addEventListener('storage', handleStorageChange)
-    
+
     // 监听自定义事件，用于在本标签页中处理认证状态变化
     const handleAuthChange = (e) => {
       if (e.detail.authenticated) {
@@ -70,7 +87,7 @@ function AppContent() {
         setIsAuthenticated(false)
       }
     }
-    
+
     window.addEventListener('authChange', handleAuthChange)
 
     // 监听窗口大小变化
@@ -78,9 +95,9 @@ function AppContent() {
       const width = window.innerWidth
       setWindowWidth(width)
     }
-    
+
     window.addEventListener('resize', handleResize)
-    
+
     return () => {
       window.removeEventListener('storage', handleStorageChange)
       window.removeEventListener('authChange', handleAuthChange)
@@ -135,7 +152,7 @@ function AppContent() {
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 flex-col lg:flex-row">
-      <Sidebar 
+      <Sidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onLogout={handleLogout}
@@ -147,19 +164,19 @@ function AppContent() {
         "flex-1 flex flex-col transition-all duration-300",
         "overflow-y-auto",
         "min-h-screen",
-        windowWidth < 768 
-          ? 'pb-[calc(64px+env(safe-area-inset-bottom))]' 
-          : windowWidth < 1024 
-            ? 'ml-20' 
-            : isSidebarCollapsed 
-              ? 'ml-20' 
+        windowWidth < 768
+          ? 'pb-[calc(64px+env(safe-area-inset-bottom))]'
+          : windowWidth < 1024
+            ? 'ml-20'
+            : isSidebarCollapsed
+              ? 'ml-20'
               : 'ml-64'
       )}>
         <div className="flex-1 p-4 sm:p-4 lg:p-4 pt-1 sm:pt-4">
           {renderContent()}
         </div>
       </main>
-      <MobileBottomNav 
+      <MobileBottomNav
         activeTab={activeTab}
         onTabChange={handleTabChange}
         windowWidth={windowWidth}

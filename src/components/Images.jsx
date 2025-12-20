@@ -179,7 +179,7 @@ export function Images() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* 页面头部 */}
-      <div className="px-4 sm:px-6 py-4">
+      <div className="px-2 sm:px-6 py-4 pt-4 sm:pt-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
           <div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">镜像管理</h2>
@@ -292,55 +292,76 @@ export function Images() {
       )}
 
       {/* 统计信息 */}
-      <div className="px-4 sm:px-6 py-4 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <button
-          onClick={() => setFilterStatus(null)}
-          className={cn(
-            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
-            filterStatus === null ? "ring-2 ring-primary-400 dark:ring-primary-500" : ""
-          )}
-        >
-          <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-            {images.length}
-          </div>
-          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">总镜像数</div>
-        </button>
-        <button
-          onClick={() => setFilterStatus('used')}
-          className={cn(
-            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
-            filterStatus === 'used' ? "ring-2 ring-green-400 dark:ring-green-500" : ""
-          )}
-        >
-          <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-            {images.filter(img => img.inUsed).length}
-          </div>
-          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">使用中</div>
-        </button>
-        <button
-          onClick={() => setFilterStatus('unused')}
-          className={cn(
-            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
-            filterStatus === 'unused' ? "ring-2 ring-yellow-400 dark:ring-yellow-500" : ""
-          )}
-        >
-          <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400 mb-2">
-            {images.filter(img => !img.inUsed).length}
-          </div>
-          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">未使用</div>
-        </button>
-        <button
-          onClick={() => setFilterStatus('dangling')}
-          className={cn(
-            "card p-4 sm:p-6 rounded-2xl text-left transition-all duration-200 cursor-pointer hover:shadow-lg",
-            filterStatus === 'dangling' ? "ring-2 ring-orange-400 dark:ring-orange-500" : ""
-          )}
-        >
-          <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-            {images.filter(img => img.tag === 'None' || img.tag === '<none>').length}
-          </div>
-          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">无Tag</div>
-        </button>
+      <div className="px-2 sm:px-6 py-4">
+        <div className="grid grid-cols-4 gap-0 rounded-3xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          {/* 总镜像数 */}
+          <button
+            onClick={() => setFilterStatus(null)}
+            className={cn(
+              "p-3 sm:p-5 text-center transition-all duration-300 relative overflow-hidden group border-r border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center",
+              filterStatus === null ? "bg-primary-50 dark:bg-primary-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            )}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="text-2xl sm:text-3xl font-bold text-primary-600 dark:text-primary-400 transition-transform duration-300 group-hover:scale-110">
+                {images.length}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">总镜像</div>
+            </div>
+          </button>
+
+          {/* 使用中 */}
+          <button
+            onClick={() => setFilterStatus('used')}
+            className={cn(
+              "p-3 sm:p-5 text-center transition-all duration-300 relative overflow-hidden group border-r border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center",
+              filterStatus === 'used' ? "bg-green-50 dark:bg-green-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            )}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 transition-transform duration-300 group-hover:scale-110">
+                {images.filter(img => img.inUsed).length}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">使用中</div>
+            </div>
+          </button>
+
+          {/* 未使用 */}
+          <button
+            onClick={() => setFilterStatus('unused')}
+            className={cn(
+              "p-3 sm:p-5 text-center transition-all duration-300 relative overflow-hidden group border-r border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center",
+              filterStatus === 'unused' ? "bg-yellow-50 dark:bg-yellow-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            )}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="text-2xl sm:text-3xl font-bold text-yellow-600 dark:text-yellow-400 transition-transform duration-300 group-hover:scale-110">
+                {images.filter(img => !img.inUsed).length}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">未使用</div>
+            </div>
+          </button>
+
+          {/* 无Tag */}
+          <button
+            onClick={() => setFilterStatus('dangling')}
+            className={cn(
+              "p-3 sm:p-5 text-center transition-all duration-300 relative overflow-hidden group flex flex-col items-center justify-center",
+              filterStatus === 'dangling' ? "bg-orange-50 dark:bg-orange-900/20" : "hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            )}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="relative">
+              <div className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 transition-transform duration-300 group-hover:scale-110">
+                {images.filter(img => img.tag === 'None' || img.tag === '<none>').length}
+              </div>
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">无Tag</div>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* 筛选提示 */}
@@ -366,7 +387,7 @@ export function Images() {
       )}
 
       {/* 镜像网格 */}
-      <div className="px-4 sm:px-6 py-4">
+      <div className="px-2 sm:px-6 py-4">
         {images.length === 0 ? (
           <div className="card p-12 text-center rounded-2xl">
             <HardDrive className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
@@ -395,25 +416,40 @@ export function Images() {
                         fallback={<HardDrive className="h-5 w-5 text-gray-500 dark:text-gray-400" />}
                       />
                     </div>
-
+                    
+                    {/* 竖线状态指示器 */}
+                    <div className="flex flex-col items-center justify-center h-10">
+                      {image.inUsed && (
+                        <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full flex-shrink-0" />
+                      )}
+                      {!image.inUsed && (
+                        <div className="w-1 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0" />
+                      )}
+                    </div>
+                    
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-gray-900 dark:text-white truncate text-sm">
-                          {image.name}
-                        </h4>
-                        {image.inUsed ? (
-                          <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 bg-green-500" title="使用中" />
-                        ) : (
-                          <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 bg-gray-400" title="未使用" />
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                        <span className="truncate max-w-[120px]" title={image.tag}>{image.tag}</span>
-                        <span className="text-gray-300 dark:text-gray-600">|</span>
+                      <h4 className="font-semibold text-gray-900 dark:text-white truncate text-sm">
+                        {image.name}
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center justify-between gap-2">
+                        <span className="truncate">{image.tag}</span>
                         <span className={cn("font-semibold flex-shrink-0 whitespace-nowrap", getSizeColor(image.size))}>
-                          {formatImageSize(image.size)}
+                          大小: {formatImageSize(image.size)}
                         </span>
                       </p>
+                    </div>
+
+                    {/* 官网跳转按钮 - 始终显示 */}
+                    <div className="flex gap-1">
+                      <a
+                        href={`https://hub.docker.com/r/${image.name}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors active:scale-95"
+                        title="在Docker Hub查看"
+                      >
+                        <Link className="h-4 w-4" />
+                      </a>
                     </div>
                   </div>
 
@@ -428,19 +464,10 @@ export function Images() {
                   </div>
 
                   {/* 操作按钮 */}
-                  <div className="flex gap-1 pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <a
-                      href={`https://hub.docker.com/r/${image.name}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-auto flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors active:scale-95 bg-transparent whitespace-nowrap"
-                    >
-                      <Link className="h-3.5 w-3.5" />
-                      <span>查看</span>
-                    </a>
+                  <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
                     <button
                       onClick={() => setDeleteModal({ isOpen: true, image, force: false })}
-                      className="flex-auto flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors active:scale-95 whitespace-nowrap"
+                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors active:scale-95"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                       <span>删除</span>
@@ -448,7 +475,7 @@ export function Images() {
                     {image.inUsed && (
                       <button
                         onClick={() => setDeleteModal({ isOpen: true, image, force: true })}
-                        className="flex-auto flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors active:scale-95 whitespace-nowrap"
+                        className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors active:scale-95"
                         title="强制删除正在使用的镜像"
                       >
                         <Trash2 className="h-3.5 w-3.5" />

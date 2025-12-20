@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { HardDrive, Trash2, RefreshCw, Link, BrushCleaning, X, AlertCircle, CheckCircle } from 'lucide-react'
 import { imageAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
@@ -7,15 +8,15 @@ import { getImageLogo } from '../config/imageLogos.js'
 // 安全的图片组件
 function SafeImage({ src, alt, className, fallback }) {
   const [hasError, setHasError] = React.useState(false)
-  
+
   if (hasError || !src) {
     return fallback
   }
-  
+
   return (
-    <img 
-      src={src} 
-      alt={alt} 
+    <img
+      src={src}
+      alt={alt}
       className={className}
       onError={() => setHasError(true)}
     />
@@ -32,13 +33,44 @@ export function Images() {
   const [pruneModal, setPruneModal] = useState({ isOpen: false, type: null, images: [] })
   const [successModal, setSuccessModal] = useState({ isOpen: false, message: '' })
 
+  // 获取自定义图标配置
+  const { data: customIcons = {} } = useQuery({
+    queryKey: ['customIcons'],
+    queryFn: async () => {
+      try {
+        const response = await imageAPI.getIcons()
+        if (response.data.code === 200 || response.data.code === 0) {
+          const icons = response.data.data || {}
+          // update localStorage
+          localStorage.setItem('docker_copilot_image_logos', JSON.stringify(icons))
+          return icons
+        }
+      } catch (err) {
+        console.error('获取图标失败:', err)
+      }
+      return {}
+    },
+    // 初始数据尝试从localStorage获取
+    initialData: () => {
+      const saved = localStorage.getItem('docker_copilot_image_logos')
+      if (saved) {
+        try {
+          return JSON.parse(saved)
+        } catch (e) {
+          console.error('解析本地图标配置失败:', e)
+        }
+      }
+      return undefined
+    }
+  })
+
   const fetchImages = async () => {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       const response = await imageAPI.getImages()
-      
+
       if (response.data && (response.data.code === 0 || response.data.code === 200)) {
         setImages(response.data.data || [])
       } else {
@@ -63,9 +95,9 @@ export function Images() {
     try {
       setIsLoading(true)
       setDeleteModal({ isOpen: false, image: null })
-      
+
       await imageAPI.deleteImage(imageId, force)
-      
+
       setSuccessModal({ isOpen: true, message: '镜像删除成功' })
       fetchImages()
       setTimeout(() => setSuccessModal({ isOpen: false, message: '' }), 3000)
@@ -80,31 +112,31 @@ export function Images() {
     try {
       setIsLoading(true)
       setError(null)
-      
+
       let imagesToDelete = []
       if (type === 'dangling') {
         imagesToDelete = images.filter(img => img.tag === 'None' || img.tag === '<none>')
       } else if (type === 'unused') {
         imagesToDelete = images.filter(img => !img.inUsed)
       }
-      
+
       if (imagesToDelete.length === 0) {
         setError('没有找到需要清理的镜像')
         setIsLoading(false)
         return
       }
-      
+
       // 批量删除
-      const deletePromises = imagesToDelete.map(image => 
+      const deletePromises = imagesToDelete.map(image =>
         imageAPI.deleteImage(image.id, false)
       )
-      
+
       await Promise.all(deletePromises)
-      
-      const message = type === 'dangling' 
+
+      const message = type === 'dangling'
         ? `成功清理 ${imagesToDelete.length} 个无Tag镜像`
         : `成功清理 ${imagesToDelete.length} 个未使用的镜像`
-      
+
       setSuccessModal({ isOpen: true, message })
       fetchImages()
       setTimeout(() => setSuccessModal({ isOpen: false, message: '' }), 3000)
@@ -118,8 +150,8 @@ export function Images() {
   const formatImageSize = (sizeStr) => {
     if (!sizeStr) return '0 MB'
     return sizeStr.replace(/mb/gi, 'MB')
-                  .replace(/gb/gi, 'GB')
-                  .replace(/kb/gi, 'KB')
+      .replace(/gb/gi, 'GB')
+      .replace(/kb/gi, 'KB')
   }
 
   const getSizeColor = (size) => {
@@ -147,11 +179,11 @@ export function Images() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* 页面头部 */}
-        <div className="px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="px-4 sm:px-6 py-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">镜像管理</h2>
-            <p className="text-gray-600 dark:text-gray-400">查看和管理Docker镜像</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">镜像管理</h2>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">查看和管理Docker镜像</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -221,7 +253,7 @@ export function Images() {
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100 hover:scale-105">
             {/* 顶部装饰条 */}
             <div className="h-1 bg-gradient-to-r from-green-400 via-emerald-500 to-green-600"></div>
-            
+
             <div className="p-8 flex flex-col items-center text-center">
               {/* 成功图标容器 - 带脉冲动画 */}
               <div className="relative mb-6">
@@ -230,20 +262,20 @@ export function Images() {
                   <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400 animate-bounceIn" />
                 </div>
               </div>
-              
+
               {/* 标题 */}
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 操作成功
               </h3>
-              
+
               {/* 分隔线 */}
               <div className="w-12 h-1 bg-gradient-to-r from-transparent via-green-400 to-transparent rounded-full mb-4"></div>
-              
+
               {/* 消息内容 */}
               <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-8">
                 {successModal.message}
               </p>
-              
+
               {/* 按钮 */}
               <button
                 onClick={() => setSuccessModal({ isOpen: false, message: '' })}
@@ -252,7 +284,7 @@ export function Images() {
                 完成
               </button>
             </div>
-            
+
             {/* 底部装饰 */}
             <div className="h-0.5 bg-gradient-to-r from-transparent via-green-200 dark:via-green-800 to-transparent"></div>
           </div>
@@ -313,8 +345,8 @@ export function Images() {
 
       {/* 筛选提示 */}
       {filterStatus && (
-        <div className="px-4 sm:px-6 py-2">
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <div className="px-4 sm:px-6 pt-2 pb-0">
+          <div className="mb-0 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <div className="flex items-center gap-2">
               <span className="text-sm text-blue-700 dark:text-blue-300">
                 筛选中：
@@ -352,86 +384,80 @@ export function Images() {
                 return true
               })
               .map((image) => (
-              <div key={image.id} className="group card p-4 rounded-2xl hover:shadow-lg transition-all">
-                {/* 头部：图标、名字、状态指示器和大小 */}
-                <div className="flex items-start gap-3 mb-4">
-                  <div className="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    <SafeImage
-                      src={getImageLogo(image.name)}
-                      alt={image.name}
-                      className="h-10 w-10 object-cover"
-                      fallback={<HardDrive className="h-5 w-5 text-gray-500 dark:text-gray-400" />}
-                    />
-                  </div>
-                  
-                  {/* 竖线状态指示器 */}
-                  <div className="flex flex-col items-center justify-center h-10">
-                    {image.inUsed && (
-                      <div className="w-1 h-6 bg-gradient-to-b from-green-500 to-green-600 rounded-full flex-shrink-0" />
-                    )}
-                    {!image.inUsed && (
-                      <div className="w-1 h-6 bg-gray-300 dark:bg-gray-600 rounded-full flex-shrink-0" />
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 dark:text-white truncate text-sm">
-                      {image.name}
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center justify-between gap-2">
-                      <span className="truncate">{image.tag}</span>
-                      <span className={cn("font-semibold flex-shrink-0 whitespace-nowrap", getSizeColor(image.size))}>
-                        大小: {formatImageSize(image.size)}
-                      </span>
-                    </p>
+                <div key={image.id} className="group card p-4 rounded-2xl hover:shadow-lg transition-all">
+                  {/* 头部：图标、名字、状态指示器和大小 */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      <SafeImage
+                        src={getImageLogo(image.name, customIcons)}
+                        alt={image.name}
+                        className="h-10 w-10 object-cover"
+                        fallback={<HardDrive className="h-5 w-5 text-gray-500 dark:text-gray-400" />}
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-semibold text-gray-900 dark:text-white truncate text-sm">
+                          {image.name}
+                        </h4>
+                        {image.inUsed ? (
+                          <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 bg-green-500" title="使用中" />
+                        ) : (
+                          <div className="w-2.5 h-2.5 rounded-full shadow-sm flex-shrink-0 bg-gray-400" title="未使用" />
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                        <span className="truncate max-w-[120px]" title={image.tag}>{image.tag}</span>
+                        <span className="text-gray-300 dark:text-gray-600">|</span>
+                        <span className={cn("font-semibold flex-shrink-0 whitespace-nowrap", getSizeColor(image.size))}>
+                          {formatImageSize(image.size)}
+                        </span>
+                      </p>
+                    </div>
                   </div>
 
-                  {/* 官网跳转按钮 - 始终显示 */}
-                  <div className="flex gap-1">
+                  {/* 镜像信息 */}
+                  <div className="space-y-2 text-xs mb-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">ID:</span>
+                      <span className="font-mono text-gray-700 dark:text-gray-300 truncate text-xs">
+                        {image.id}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 操作按钮 */}
+                  <div className="flex gap-1 pt-4 border-t border-gray-100 dark:border-gray-700">
                     <a
                       href={`https://hub.docker.com/r/${image.name}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors active:scale-95"
-                      title="在Docker Hub查看"
+                      className="flex-auto flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors active:scale-95 bg-transparent whitespace-nowrap"
                     >
-                      <Link className="h-4 w-4" />
+                      <Link className="h-3.5 w-3.5" />
+                      <span>查看</span>
                     </a>
-                  </div>
-                </div>
-
-                {/* 镜像信息 */}
-                <div className="space-y-2 text-xs mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-500 dark:text-gray-400 flex-shrink-0">ID:</span>
-                    <span className="font-mono text-gray-700 dark:text-gray-300 truncate text-xs">
-                      {image.id}
-                    </span>
-                  </div>
-                </div>
-
-                {/* 操作按钮 */}
-                <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
-                  <button
-                    onClick={() => setDeleteModal({ isOpen: true, image, force: false })}
-                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors active:scale-95"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    <span>删除</span>
-                  </button>
-                  {image.inUsed && (
                     <button
-                      onClick={() => setDeleteModal({ isOpen: true, image, force: true })}
-                      className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-xs text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors active:scale-95"
-                      title="强制删除正在使用的镜像"
+                      onClick={() => setDeleteModal({ isOpen: true, image, force: false })}
+                      className="flex-auto flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors active:scale-95 whitespace-nowrap"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
-                      <span>强制删除</span>
+                      <span>删除</span>
                     </button>
-                  )}
+                    {image.inUsed && (
+                      <button
+                        onClick={() => setDeleteModal({ isOpen: true, image, force: true })}
+                        className="flex-auto flex items-center justify-center gap-1 px-1 py-1.5 text-xs font-medium text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors active:scale-95 whitespace-nowrap"
+                        title="强制删除正在使用的镜像"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>强制删除</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         )}
       </div>
@@ -442,7 +468,7 @@ export function Images() {
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-96 flex flex-col overflow-hidden transform transition-all duration-300 scale-100">
             {/* 顶部装饰条 */}
             <div className="h-1 bg-gradient-to-r from-orange-400 via-red-500 to-orange-600"></div>
-            
+
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-start gap-4">
                 <div className="relative h-12 w-12 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/30 dark:to-red-900/30 rounded-full flex items-center justify-center flex-shrink-0 border border-orange-200 dark:border-orange-700 flex-shrink-0">
@@ -466,7 +492,7 @@ export function Images() {
                   <div key={img.id} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-700 rounded-xl hover:shadow-md transition-all duration-200">
                     <div className="h-8 w-8 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
                       <SafeImage
-                        src={getImageLogo(img.name)}
+                        src={getImageLogo(img.name, customIcons)}
                         alt={img.name}
                         className="h-8 w-8 object-cover"
                         fallback={<HardDrive className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
@@ -523,8 +549,8 @@ export function Images() {
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all duration-300 scale-100">
             {/* 顶部装饰条 */}
-            <div className="h-1 bg-gradient-to-r from-red-400 via-rose-500 to-red-600"></div>
-            
+            {/*<div className="h-1 bg-gradient-to-r from-red-400 via-rose-500 to-red-600"></div>*/}
+
             <div className="p-8 flex flex-col">
               {/* 图标和标题 */}
               <div className="flex items-start gap-4 mb-6">
@@ -583,7 +609,7 @@ export function Images() {
                 </button>
               </div>
             </div>
-            
+
             {/* 底部装饰 */}
             <div className="h-0.5 bg-gradient-to-r from-transparent via-red-200 dark:via-red-800 to-transparent"></div>
           </div>

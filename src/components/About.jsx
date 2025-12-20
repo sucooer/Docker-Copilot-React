@@ -8,8 +8,7 @@ export function About() {
   return (
     <div className="max-w-7xl mx-auto">
 
-
-      <div className="px-4 sm:px-6 py-4 space-y-6">
+      <div className="px-2 sm:px-6 py-4 pt-4 sm:pt-4 space-y-6">
         {/* 项目展示卡片 */}
         <div className="card p-8 flex flex-col items-center text-center relative overflow-hidden">
           <div className="relative mb-4">

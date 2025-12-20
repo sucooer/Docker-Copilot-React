@@ -165,14 +165,14 @@ function AppContent() {
         "overflow-y-auto",
         "min-h-screen",
         windowWidth < 768
-          ? 'pb-[calc(64px+env(safe-area-inset-bottom))]'
+          ? 'pb-[calc(64px+1rem+env(safe-area-inset-bottom))]'
           : windowWidth < 1024
             ? 'ml-20'
             : isSidebarCollapsed
               ? 'ml-20'
               : 'ml-64'
       )}>
-        <div className="flex-1 p-4 sm:p-4 lg:p-4 pt-1 sm:pt-4">
+        <div className="flex-1 p-2 sm:p-4 lg:p-4 pt-4 sm:pt-4">
           {renderContent()}
         </div>
       </main>

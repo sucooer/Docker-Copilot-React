@@ -89,11 +89,6 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       icon: DatabaseBackup,
     },
     {
-      id: '#icons',
-      label: '图标',
-      icon: Palette,
-    },
-    {
       id: '#about',
       label: '关于',
       icon: Info,
@@ -104,7 +99,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
     <>
       {/* 顶部导航栏 - 仅在手机模式（sm）显示 */}
       {windowWidth < 768 && (
-        <div className="fixed top-0 left-0 right-0 h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 sm:px-4 z-40 shadow-sm">
+        <div className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between px-3 sm:px-4 z-40 shadow-sm" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: '0.875rem', height: 'calc(3.5rem + env(safe-area-inset-top))' }}>
           {/* 左侧：Logo 和项目信息 */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -137,7 +132,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       )}
 
       {/* 添加顶部导航栏的占位符 - 仅在手机模式显示 */}
-      {windowWidth < 768 && <div className="h-14" />}
+      {windowWidth < 768 && <div style={{ height: 'calc(3.5rem + env(safe-area-inset-top))' }} />}
 
       {/* 侧边栏遮罩 - 仅在手机菜单打开时显示 */}
       {windowWidth < 768 && isMobileMenuOpen && (
@@ -312,72 +307,73 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
             ) : (
               // 展开状态 - 完整卡片
               <div className="space-y-3">
-                {/* 版本信息卡片 - 现代极简风格 */}
-                <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden transition-all duration-200 hover:shadow-md">
-                  {/* 卡片头部 - 状态和版本 */}
-                  <div className="px-3 sm:px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white truncate">版本信息</span>
-                      </div>
-                      <span className="text-xs font-mono font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20 px-2 py-1 rounded-lg flex-shrink-0">
+                {/* 版本信息卡片 - 现代卡片风格 */}
+                <div className="rounded-2xl overflow-hidden shadow-md bg-gradient-to-br from-primary-500/10 via-transparent to-purple-500/10 dark:from-primary-600/10 dark:via-transparent dark:to-purple-600/10 border border-primary-200/50 dark:border-primary-700/50 transition-all duration-300 hover:shadow-lg hover:border-primary-300/70 dark:hover:border-primary-600/70">
+                  
+                  {/* 主要信息区 */}
+                  <div className="px-4 py-4 space-y-4">
+                    {/* 版本 */}
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">后端版本</span>
+                      <span className="text-lg font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
                         {backendVersion || 'v1.0'}
                       </span>
                     </div>
-                  </div>
 
-                  {/* 开发人员信息 - 可折叠 */}
-                  <div className="px-3 sm:px-4 py-2.5 space-y-2">
-                    <button
-                      onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
-                      className="flex items-center justify-between w-full text-xs font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-200 transition-colors py-1"
-                    >
-                      <span>👥 开发团队</span>
-                      {isDevInfoExpanded ? (
-                        <ChevronDown className="h-3.5 w-3.5" />
-                      ) : (
-                        <ChevronRight className="h-3.5 w-3.5" />
+                    {/* 开发人员 - 分段显示 */}
+                    <div className="space-y-2 pt-1 border-t border-primary-200/50 dark:border-primary-700/50">
+                      <button
+                        onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
+                        className="flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg transition-colors hover:bg-primary-100/50 dark:hover:bg-primary-900/20"
+                      >
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                          <span>👥</span>
+                          <span>开发团队</span>
+                        </span>
+                        {isDevInfoExpanded ? (
+                          <ChevronDown className="h-3.5 w-3.5 text-primary-600 dark:text-primary-400" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 text-gray-400 dark:text-gray-600" />
+                        )}
+                      </button>
+
+                      {isDevInfoExpanded && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-200 grid grid-cols-2 gap-2 pt-2">
+                          <div className="rounded-xl p-3 bg-white dark:bg-gray-800/70 border border-blue-200 dark:border-blue-800/50 shadow-sm hover:shadow-md transition-shadow">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">🎨 前端</p>
+                            <p className="font-bold text-gray-900 dark:text-white text-sm">DongShu</p>
+                          </div>
+                          <div className="rounded-xl p-3 bg-white dark:bg-gray-800/70 border border-purple-200 dark:border-purple-800/50 shadow-sm hover:shadow-md transition-shadow">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">⚙️ 后端</p>
+                            <p className="font-bold text-gray-900 dark:text-white text-sm">onlyLTY</p>
+                          </div>
+                        </div>
                       )}
-                    </button>
-
-                    {isDevInfoExpanded && (
-                      <div className="animate-in slide-in-from-top-2 duration-200 grid grid-cols-2 gap-2 pt-1">
-                        <div className="text-xs bg-white dark:bg-gray-800/50 rounded-lg p-2 border border-gray-100 dark:border-gray-700">
-                          <p className="text-gray-500 dark:text-gray-400 text-xs mb-1 font-medium">前端</p>
-                          <p className="font-bold text-gray-900 dark:text-white">DongShu</p>
-                        </div>
-                        <div className="text-xs bg-white dark:bg-gray-800/50 rounded-lg p-2 border border-gray-100 dark:border-gray-700">
-                          <p className="text-gray-500 dark:text-gray-400 text-xs mb-1 font-medium">后端</p>
-                          <p className="font-bold text-gray-900 dark:text-white">onlyLTY</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 构建和更新信息 */}
-                  <div className="px-3 sm:px-4 py-2.5 border-t border-gray-200 dark:border-gray-700 space-y-1.5 text-xs">
-                    <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
-                      <span>⏰ 最后检查</span>
-                      <span className="font-medium">{(new Date()).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
 
-                    {buildDate && (
-                      <div className="flex items-center justify-between text-gray-600 dark:text-gray-400">
-                        <span>🔨 构建</span>
-                        <span className="font-medium text-xs" title={formatVersionBuildDate(buildDate)}>
-                          {formatVersionBuildDate(buildDate)}
-                        </span>
-                      </div>
-                    )}
+                    {/* 构建信息 */}
+                    <div className="space-y-2.5 pt-2.5 border-t border-primary-200/50 dark:border-primary-700/50 text-xs">
+                      {buildDate && (
+                        <div className="flex items-center justify-between gap-2 py-1">
+                          <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 flex-shrink-0">
+                            <span>🔨</span>
+                            <span>构建日期</span>
+                          </span>
+                          <span className="font-semibold text-gray-700 dark:text-gray-300 text-right text-xs flex-shrink-0" title={formatVersionBuildDate(buildDate)}>
+                            {formatVersionBuildDate(buildDate).split(' ')[0]}
+                          </span>
+                        </div>
+                      )}
+                    </div>
 
+                    {/* 更新提示 */}
                     {hasBackendUpdate && (
                       <button
                         onClick={() => setShowUpdatePrompt(true)}
-                        className="w-full mt-2 pt-1.5 border-t border-amber-200 dark:border-amber-900/30 text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-semibold transition-colors flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 px-3 mt-1 rounded-lg bg-gradient-to-r from-amber-400/20 to-orange-400/20 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-300 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 hover:from-amber-400/30 hover:to-orange-400/30 dark:hover:from-amber-900/40 dark:hover:to-orange-900/40 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2"
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        有新版本可更新
+                        <span>有新版本可更新</span>
                       </button>
                     )}
                   </div>
@@ -431,8 +427,14 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
   return (
     <>
       {windowWidth < 768 && (
-        <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40">
-          <div className="flex items-center justify-around h-16 px-2" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <nav 
+          className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full z-40 shadow-lg transition-all duration-300" 
+          style={{ 
+            bottom: 'env(safe-area-inset-bottom, 0.5rem)',
+            paddingBottom: '0.5rem'
+          }}
+        >
+          <div className="flex items-center justify-around px-3 py-3.5 gap-2">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = activeTab === item.id
@@ -441,15 +443,15 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1.5 py-2 px-3 rounded-lg transition-all duration-200 active:scale-95 flex-1 min-h-[64px]",
+                    "flex flex-col items-center justify-center gap-1 py-2.5 px-3 rounded-full transition-all duration-200 active:scale-95 flex-1",
                     isActive
-                      ? "text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+                      ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/40"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"
                   )}
                   title={item.label}
                 >
-                  <Icon className="h-6 w-6 flex-shrink-0" />
-                  <span className="text-xs font-medium truncate">{item.label}</span>
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  <span className="text-xs font-medium">{item.label}</span>
                 </button>
               )
             })}

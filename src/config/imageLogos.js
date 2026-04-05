@@ -39,6 +39,9 @@ import PansouWebLogo from '../assets/logos/pansou.jpg';
 import ImmortalLogo from '../assets/logos/immortal.png';
 import AsynqmonLogo from '../assets/logos/asynqmon.png';
 import OctopusLogo from '../assets/logos/octopus.svg';
+import LobeChatLogo from '../assets/logos/lobechat.png';
+import FlareSolverrLogo from '../assets/logos/flaresolverr.png';
+import Ztx888OpenWebuiLogo from '../assets/logos/openwebui.png';
 
 
 export const builtInImageLogos = {
@@ -82,7 +85,10 @@ export const builtInImageLogos = {
   "fish2018/pansou-web": PansouWebLogo,
   "envyafish/immortal": ImmortalLogo,
   "hibiken/asynqmon":AsynqmonLogo,
-  "bestrui/octopus": OctopusLogo
+  "bestrui/octopus": OctopusLogo,
+  "lobehub/lobe-chat": LobeChatLogo,
+  "flaresolverr/flaresolverr": FlareSolverrLogo,
+  "ztx888/openwebui": Ztx888OpenWebuiLogo,
 };
 
 // 获取镜像的logo

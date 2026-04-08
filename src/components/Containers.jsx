@@ -360,7 +360,7 @@ export function Containers() {
     }
   }
 
-  const handleUpdateContainer = async (containerId) => {
+  const handleUpdateContainer = async (containerId, existingTaskID = null) => {
     try {
       const container = containers.find(c => c.id === containerId)
       if (!container) {
@@ -374,6 +374,16 @@ export function Containers() {
         ...prev,
         [containerId]: { action: 'update', loading: true, progress: '正在准备更新...', percentage: 0 }
       }))
+
+      if (existingTaskID) {
+        console.log('复用已有更新任务, taskID:', existingTaskID)
+        setUpdateTasks(prev => ({
+          ...prev,
+          [containerId]: existingTaskID
+        }))
+        pollProgress(containerId, existingTaskID)
+        return
+      }
 
       // 注意参数顺序: id, containerName, imageNameAndTag, delOldContainer
       const response = await containerAPI.updateContainer(
@@ -507,14 +517,12 @@ export function Containers() {
 
         // 检查是否完成 - 兼容多种响应格式
         const status = data.data?.status || data.status
-        const isCompleted = status === 'completed' ||
+        const isDone = data.data?.isDone === true ||
+          status === 'completed' ||
           status === 'success' ||
           status === 'done' ||
           status === 'finish' ||
-          status === 'finished' ||
-          progressMsg.includes('完成') ||
-          progressMsg.includes('成功') ||
-          (data.code === 200 && (data.msg === 'success' || data.msg === '操作成功' || data.msg === '更新成功'))
+          status === 'finished'
 
         // 检查是否失败
         const isFailed = status === 'failed' ||
@@ -523,6 +531,8 @@ export function Containers() {
           progressMsg.includes('错误') ||
           data.code === 500 ||
           data.code === 400
+
+        const isCompleted = isDone && !isFailed
 
         if (isCompleted) {
           // 任务完成 - 立即停止轮询
@@ -1421,7 +1431,7 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
             onClose()
 
             // 触发父组件中的进度轮询
-            onUpdate(container.id)
+            onUpdate(container.id, taskID)
 
             console.log('✅ 容器更新任务已启动，请在列表中查看进度')
           } else {

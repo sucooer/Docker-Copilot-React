@@ -42,7 +42,7 @@ import OctopusLogo from '../assets/logos/octopus.svg';
 import LobeChatLogo from '../assets/logos/lobechat.png';
 import FlareSolverrLogo from '../assets/logos/flaresolverr.png';
 import Ztx888OpenWebuiLogo from '../assets/logos/openwebui.png';
-
+import HermesAgentLogo from '../assets/logos/hermes-agent.png';
 
 export const builtInImageLogos = {
   "xylplm/media-saber": MediaSaberLogo,
@@ -89,6 +89,7 @@ export const builtInImageLogos = {
   "lobehub/lobe-chat": LobeChatLogo,
   "flaresolverr/flaresolverr": FlareSolverrLogo,
   "ztx888/openwebui": Ztx888OpenWebuiLogo,
+  "nousresearch/hermes-agent": HermesAgentLogo
 };
 
 // 获取镜像的logo

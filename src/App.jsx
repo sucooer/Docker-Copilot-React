@@ -165,7 +165,7 @@ function AppContent() {
         "overflow-y-auto",
         "min-h-screen",
         windowWidth < 768
-          ? 'pb-[calc(64px+1rem+env(safe-area-inset-bottom))]'
+          ? 'pb-[calc(88px+1rem+env(safe-area-inset-bottom))]'
           : windowWidth < 1024
             ? 'ml-20'
             : isSidebarCollapsed

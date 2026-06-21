@@ -1,14 +1,9 @@
 import React from 'react'
 import {
   Box,
-  HardDrive,
   LogOut,
-  Menu,
-  X,
   Server,
-  Image,
   DatabaseBackup,
-  Palette,
   Info
 } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle.jsx'
@@ -218,7 +213,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
                     >
                       {/* 左侧指示条 */}
                       {isActive && !isCollapsed && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 dark:bg-primary-400 rounded-r-full" />
                       )}
 
                       <Icon className={cn(
@@ -392,7 +387,7 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
             bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)'
           }}
         >
-          <div className="flex items-center justify-around px-3 py-3.5 gap-2">
+          <div className="flex items-center justify-around px-3 py-3 gap-1">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = activeTab === item.id
@@ -401,7 +396,7 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2.5 px-3 rounded-full transition-all duration-200 active:scale-95 flex-1",
+                    "flex flex-col items-center justify-center gap-1 py-2 px-2.5 rounded-full transition-all duration-200 active:scale-95 flex-1",
                     isActive
                       ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/40"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"

@@ -32,6 +32,7 @@ import ByteMuseLogo from '../assets/logos/byte-muse.jpg';
 import NextChatLogo from '../assets/logos/next-chat.png';
 import MdcNgLogo from '../assets/logos/mdc-ng.png';
 import RichDogLogo from '../assets/logos/rich-dog.svg';
+import MsTmdbLogo from '../assets/logos/ms_tmdb.png';
 
 export const builtInImageLogos = {
   "xylplm/media-saber": MediaSaberLogo,
@@ -66,6 +67,8 @@ export const builtInImageLogos = {
   "yidadaa/chatgpt-next-web":NextChatLogo,
   "mdcng/mdc":MdcNgLogo,
   "zhaoyangguang/rebatedog":RichDogLogo,
+  "gatecross/ms_tmdb":MsTmdbLogo,
+  "ms_tmdb":MsTmdbLogo,
 };
 
 // 获取镜像的logo

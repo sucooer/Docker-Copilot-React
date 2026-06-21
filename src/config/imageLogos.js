@@ -36,6 +36,7 @@ import MsTmdbLogo from '../assets/logos/ms_tmdb.png';
 
 export const builtInImageLogos = {
   "xylplm/media-saber": MediaSaberLogo,
+  "xylplm/bm-simulate-xunlei-api-to-media-saber": MediaSaberLogo,
   "jxxghp/moviepilot-v2": MoviepilotLogo,
   "0nlylty/dockercopilot": DockerCopilotLogo,
   "mtphotos/mt-photos": MTPhotos,

@@ -1,17 +1,10 @@
 import React from 'react'
 import {
   Box,
-  HardDrive,
   LogOut,
-  Menu,
-  X,
   Server,
-  Image,
   DatabaseBackup,
-  Palette,
-  Info,
-  ChevronDown,
-  ChevronRight
+  Info
 } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle.jsx'
 import { UpdatePrompt } from './UpdatePrompt.jsx'
@@ -21,7 +14,6 @@ import { useVersionCheck } from '../hooks/useVersionCheck.js'
 
 export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false, onToggleCollapse, windowWidth = 1024 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
-  const [isDevInfoExpanded, setIsDevInfoExpanded] = React.useState(false)
 
   // 时间格式转换函数 - 将UTC时间转换为北京时间
   const formatVersionBuildDate = (dateString) => {
@@ -221,7 +213,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
                     >
                       {/* 左侧指示条 */}
                       {isActive && !isCollapsed && (
-                        <div className="absolute left-0 top-0 bottom-0 w-1" />
+                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 dark:bg-primary-400 rounded-r-full" />
                       )}
 
                       <Icon className={cn(
@@ -271,112 +263,74 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
 
             {/* 版本信息部分 */}
             {isCollapsed ? (
-              // 收起状态 - 竖向堆叠的迷你卡片
-              <div className="space-y-2">
+              // 收起状态 - 简约指示
+              <div className="space-y-3">
                 {/* 状态指示 */}
                 <div className="flex justify-center">
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 group hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-all duration-200 cursor-help" title={`在线 - ${backendVersion || 'v1.0'}`}>
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  </span>
+                  <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-400/50 dark:shadow-emerald-600/50" title={`运行中 - ${backendVersion || 'v1.0'}`} />
                 </div>
 
-                {/* 开发人员 */}
-                <button
-                  onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
-                  className="flex justify-center w-full"
-                  title={isDevInfoExpanded ? "隐藏开发人员" : "显示开发人员"}
-                >
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 dark:bg-primary-900/30 hover:bg-primary-200 dark:hover:bg-primary-900/50 transition-all duration-200">
-                    <span className="text-xs font-bold text-primary-600 dark:text-primary-400">👥</span>
-                  </span>
-                </button>
+                {/* 开发人员 - 首字母 */}
+                <div className="flex justify-center">
+                  <div className="flex -space-x-1.5">
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-[10px] font-semibold text-blue-600 dark:text-blue-400 ring-2 ring-white dark:ring-gray-800">D</span>
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/40 text-[10px] font-semibold text-purple-600 dark:text-purple-400 ring-2 ring-white dark:ring-gray-800">O</span>
+                  </div>
+                </div>
 
                 {/* 更新提示 */}
                 {hasBackendUpdate && (
-                  <button
-                    onClick={() => setShowUpdatePrompt(true)}
-                    className="flex justify-center w-full"
-                    title="有新版本"
-                  >
-                    <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-all duration-200 animate-pulse">
-                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                    </span>
-                  </button>
+                  <div className="flex justify-center">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400/50" title="有新版本" />
+                  </div>
                 )}
               </div>
             ) : (
-              // 展开状态 - 完整卡片
-              <div className="space-y-3">
-                {/* 版本信息卡片 - 现代卡片风格 */}
-                <div className="rounded-2xl overflow-hidden shadow-md bg-gradient-to-br from-primary-500/10 via-transparent to-purple-500/10 dark:from-primary-600/10 dark:via-transparent dark:to-purple-600/10 border border-primary-200/50 dark:border-primary-700/50 transition-all duration-300 hover:shadow-lg hover:border-primary-300/70 dark:hover:border-primary-600/70">
-                  
-                  {/* 主要信息区 */}
-                  <div className="px-4 py-4 space-y-4">
-                    {/* 版本 */}
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">后端版本</span>
-                      <span className="text-lg font-bold bg-gradient-to-r from-primary-600 to-purple-600 dark:from-primary-400 dark:to-purple-400 bg-clip-text text-transparent">
-                        {backendVersion || 'v1.0'}
-                      </span>
-                    </div>
-
-                    {/* 开发人员 - 分段显示 */}
-                    <div className="space-y-2 pt-1 border-t border-primary-200/50 dark:border-primary-700/50">
-                      <button
-                        onClick={() => setIsDevInfoExpanded(!isDevInfoExpanded)}
-                        className="flex items-center justify-between w-full py-2 px-2 -mx-2 rounded-lg transition-colors hover:bg-primary-100/50 dark:hover:bg-primary-900/20"
-                      >
-                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                          <span>👥</span>
-                          <span>开发团队</span>
-                        </span>
-                        {isDevInfoExpanded ? (
-                          <ChevronDown className="h-3.5 w-3.5 text-primary-600 dark:text-primary-400" />
-                        ) : (
-                          <ChevronRight className="h-3.5 w-3.5 text-gray-400 dark:text-gray-600" />
-                        )}
-                      </button>
-
-                      {isDevInfoExpanded && (
-                        <div className="animate-in fade-in slide-in-from-top-2 duration-200 grid grid-cols-2 gap-2 pt-2">
-                          <div className="rounded-xl p-3 bg-white dark:bg-gray-800/70 border border-blue-200 dark:border-blue-800/50 shadow-sm hover:shadow-md transition-shadow">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">🎨 前端</p>
-                            <p className="font-bold text-gray-900 dark:text-white text-sm">DongShu</p>
-                          </div>
-                          <div className="rounded-xl p-3 bg-white dark:bg-gray-800/70 border border-purple-200 dark:border-purple-800/50 shadow-sm hover:shadow-md transition-shadow">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1.5">⚙️ 后端</p>
-                            <p className="font-bold text-gray-900 dark:text-white text-sm">onlyLTY</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 构建信息 */}
-                    <div className="space-y-2.5 pt-2.5 border-t border-primary-200/50 dark:border-primary-700/50 text-xs">
-                      {buildDate && (
-                        <div className="flex items-center justify-between gap-2 py-1">
-                          <span className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 flex-shrink-0">
-                            <span>🔨</span>
-                            <span>构建日期</span>
-                          </span>
-                          <span className="font-semibold text-gray-700 dark:text-gray-300 text-right text-xs flex-shrink-0" title={formatVersionBuildDate(buildDate)}>
-                            {formatVersionBuildDate(buildDate).split(' ')[0]}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 更新提示 */}
-                    {hasBackendUpdate && (
-                      <button
-                        onClick={() => setShowUpdatePrompt(true)}
-                        className="w-full py-2.5 px-3 mt-1 rounded-lg bg-gradient-to-r from-amber-400/20 to-orange-400/20 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-300 dark:border-amber-700/50 text-amber-700 dark:text-amber-300 hover:from-amber-400/30 hover:to-orange-400/30 dark:hover:from-amber-900/40 dark:hover:to-orange-900/40 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                        <span>有新版本可更新</span>
-                      </button>
-                    )}
+              // 展开状态 - 简洁卡片
+              <div className="space-y-2.5">
+                {/* 版本状态行 */}
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">运行中</span>
                   </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">v</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {backendVersion || '1.0'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* 团队信息 - 紧凑两列 */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800/60 px-2.5 py-2">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">前端</span>
+                    <p className="text-xs font-medium text-gray-800 dark:text-gray-200 mt-0.5">DongShu</p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 dark:bg-gray-800/60 px-2.5 py-2">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500">后端</span>
+                    <p className="text-xs font-medium text-gray-800 dark:text-gray-200 mt-0.5">onlyLTY</p>
+                  </div>
+                </div>
+
+                {/* 构建日期 + 更新提示 */}
+                <div className="flex items-center justify-between px-1">
+                  {buildDate ? (
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500" title={formatVersionBuildDate(buildDate)}>
+                      构建 {formatVersionBuildDate(buildDate).split(' ')[0]}
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+                  {hasBackendUpdate && (
+                    <button
+                      onClick={() => setShowUpdatePrompt(true)}
+                      className="text-[10px] font-medium text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 transition-colors"
+                    >
+                      有新版本 →
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -430,11 +384,10 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
         <nav 
           className="fixed left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full z-40 shadow-lg transition-all duration-300" 
           style={{ 
-            bottom: 'env(safe-area-inset-bottom, 0.5rem)',
-            paddingBottom: '0.5rem'
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.5rem)'
           }}
         >
-          <div className="flex items-center justify-around px-3 py-3.5 gap-2">
+          <div className="flex items-center justify-around px-3 py-3 gap-1">
             {navItems.map((item) => {
               const Icon = item.icon
               const isActive = activeTab === item.id
@@ -443,7 +396,7 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1 py-2.5 px-3 rounded-full transition-all duration-200 active:scale-95 flex-1",
+                    "flex flex-col items-center justify-center gap-1 py-2 px-2.5 rounded-full transition-all duration-200 active:scale-95 flex-1",
                     isActive
                       ? "text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-900/40"
                       : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50"

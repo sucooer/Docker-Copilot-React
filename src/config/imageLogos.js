@@ -32,17 +32,7 @@ import ByteMuseLogo from '../assets/logos/byte-muse.jpg';
 import NextChatLogo from '../assets/logos/next-chat.png';
 import MdcNgLogo from '../assets/logos/mdc-ng.png';
 import RichDogLogo from '../assets/logos/rich-dog.svg';
-import CpaLogo from '../assets/logos/cpa.jpg';
-import OllamaLogo from '../assets/logos/ollama.png';
-import MomoLogo from '../assets/logos/momo.png';
-import PansouWebLogo from '../assets/logos/pansou.jpg';
-import ImmortalLogo from '../assets/logos/immortal.png';
-import AsynqmonLogo from '../assets/logos/asynqmon.png';
-import OctopusLogo from '../assets/logos/octopus.svg';
-import LobeChatLogo from '../assets/logos/lobechat.png';
-import FlareSolverrLogo from '../assets/logos/flaresolverr.png';
-import Ztx888OpenWebuiLogo from '../assets/logos/openwebui.png';
-import HermesAgentLogo from '../assets/logos/hermes-agent.png';
+import MsTmdbLogo from '../assets/logos/ms_tmdb.png';
 
 export const builtInImageLogos = {
   "xylplm/media-saber": MediaSaberLogo,
@@ -78,18 +68,8 @@ export const builtInImageLogos = {
   "yidadaa/chatgpt-next-web":NextChatLogo,
   "mdcng/mdc":MdcNgLogo,
   "zhaoyangguang/rebatedog":RichDogLogo,
-  "eceasy/cli-proxy-api-plus": CpaLogo,
-  "eceasy/cli-proxy-api": CpaLogo,
-  "ollama/ollama": OllamaLogo,
-  "momo20260105/momo": MomoLogo,
-  "fish2018/pansou-web": PansouWebLogo,
-  "envyafish/immortal": ImmortalLogo,
-  "hibiken/asynqmon":AsynqmonLogo,
-  "bestrui/octopus": OctopusLogo,
-  "lobehub/lobe-chat": LobeChatLogo,
-  "flaresolverr/flaresolverr": FlareSolverrLogo,
-  "ztx888/openwebui": Ztx888OpenWebuiLogo,
-  "nousresearch/hermes-agent": HermesAgentLogo
+  "gatecross/ms_tmdb":MsTmdbLogo,
+  "ms_tmdb":MsTmdbLogo,
 };
 
 // 获取镜像的logo

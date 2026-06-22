@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import {
   Layers,
   Plus,
@@ -11,9 +11,10 @@ import {
   X,
   Edit,
   Eye,
-  Terminal
+  Terminal,
+  Loader
 } from 'lucide-react'
-import { composeAPI } from '../api/client.js'
+import { composeAPI, progressAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -24,8 +25,7 @@ export function Compose() {
   const [showCreate, setShowCreate] = useState(false)
   const [showEdit, setShowEdit] = useState(null)
   const [showView, setShowView] = useState(null)
-  const [upOutput, setUpOutput] = useState(null)
-  const [upLoading, setUpLoading] = useState(null)
+  const [deployTask, setDeployTask] = useState(null)
 
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -96,27 +96,77 @@ export function Compose() {
 
   const handleUp = async (name) => {
     try {
-      setUpLoading(name)
       setError(null)
-      setUpOutput(null)
       const response = await composeAPI.up(name)
-      if (response.data.code === 200 || response.data.code === 0) {
-        const output = response.data.data?.output || ''
-        setUpOutput({ name, output, success: true })
-        setSuccess(`Compose 项目 "${name}" 启动成功`)
-        refetch()
-      } else {
-        setUpOutput({ name, output: response.data.msg || '启动失败', success: false })
-        setError(response.data.msg || '启动失败')
+      const taskID = response.data.data?.taskID
+      if (!taskID) {
+        setError('启动失败：未获取到任务ID')
+        return
       }
+      setDeployTask({ name, taskId: taskID, logs: [], isDone: false, success: false })
     } catch (err) {
-      const msg = err.response?.data?.msg || err.message || '启动失败'
-      setUpOutput({ name, output: msg, success: false })
-      setError(msg)
-    } finally {
-      setUpLoading(null)
+      setError(err.response?.data?.msg || err.message || '启动失败')
     }
   }
+
+  const pollRef = useRef(null)
+  const logsEndRef = useRef(null)
+
+  useEffect(() => {
+    if (!deployTask || deployTask.isDone) return
+    const taskId = deployTask.taskId
+    const poll = async () => {
+      try {
+        const res = await progressAPI.getProgress(taskId)
+        if (res.data.code === 200) {
+          const data = res.data.data
+          setDeployTask(prev => {
+            if (!prev || prev.taskId !== taskId) return prev
+            const newLogs = [...prev.logs]
+            if (data.detailMsg) {
+              const last = newLogs[newLogs.length - 1]
+              if (!last || last !== data.detailMsg) {
+                newLogs.push(data.detailMsg)
+              }
+            }
+            const done = data.isDone
+            return {
+              ...prev,
+              logs: newLogs,
+              isDone: done,
+              success: done && data.message === '部署完成',
+              failMsg: done && data.message !== '部署完成' ? data.message : '',
+            }
+          })
+          if (data.isDone) {
+            clearInterval(pollRef.current)
+            pollRef.current = null
+            if (data.message === '部署完成') {
+              refetch()
+            }
+          }
+        } else {
+          clearInterval(pollRef.current)
+          pollRef.current = null
+        }
+      } catch {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+    }
+    poll()
+    pollRef.current = setInterval(poll, 2000)
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+    }
+  }, [deployTask?.taskId, deployTask?.isDone])
+
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [deployTask?.logs])
 
   const showDeleteConfirm = (name) => {
     setConfirmModal({
@@ -191,23 +241,44 @@ export function Compose() {
         />
       )}
 
-      {/* 启动输出弹窗 */}
-      {upOutput && (
+      {/* 部署进度弹窗 */}
+      {deployTask && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-2xl w-full overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                {upOutput.success ? '启动成功' : '启动失败'} - {upOutput.name}
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                <Terminal className="h-5 w-5" />
+                部署 - {deployTask.name}
+                {!deployTask.isDone && <Loader className="h-4 w-4 animate-spin text-primary-500" />}
+                {deployTask.isDone && deployTask.success && <CheckCircle className="h-4 w-4 text-green-500" />}
+                {deployTask.isDone && !deployTask.success && <AlertCircle className="h-4 w-4 text-red-500" />}
               </h3>
-              <button onClick={() => setUpOutput(null)} className="text-gray-400 hover:text-gray-500">
-                <X className="h-5 w-5" />
-              </button>
+              {deployTask.isDone && (
+                <button onClick={() => setDeployTask(null)} className="text-gray-400 hover:text-gray-500">
+                  <X className="h-5 w-5" />
+                </button>
+              )}
             </div>
-            <div className="px-6 py-4 max-h-96 overflow-auto">
-              <pre className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap font-mono bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">{upOutput.output || '无输出'}</pre>
+            <div className="px-6 py-4 max-h-96 overflow-auto bg-gray-950">
+              <pre className="text-sm text-green-400 whitespace-pre-wrap font-mono leading-relaxed">
+                {deployTask.logs.length === 0 ? (
+                  <span className="text-gray-500">等待部署开始...</span>
+                ) : (
+                  deployTask.logs.map((line, i) => <div key={i}>{line}</div>)
+                )}
+                {!deployTask.isDone && (
+                  <span className="inline-block w-2 h-4 bg-green-400 animate-pulse ml-1" />
+                )}
+                <div ref={logsEndRef} />
+              </pre>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 flex justify-end">
-              <button onClick={() => setUpOutput(null)} className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors">关闭</button>
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 flex justify-between items-center">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {!deployTask.isDone ? '部署进行中...' : deployTask.success ? '部署成功' : `部署失败: ${deployTask.failMsg || ''}`}
+              </span>
+              {deployTask.isDone && (
+                <button onClick={() => setDeployTask(null)} className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors">关闭</button>
+              )}
             </div>
           </div>
         </div>
@@ -306,16 +377,16 @@ export function Compose() {
                   </button>
                   <button
                     onClick={() => handleUp(project.name)}
-                    disabled={upLoading === project.name}
+                    disabled={deployTask && !deployTask.isDone}
                     className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-sm text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
                     title="部署启动"
                   >
-                    {upLoading === project.name ? (
+                    {deployTask && !deployTask.isDone && deployTask.name === project.name ? (
                       <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                     ) : (
                       <Play className="h-3.5 w-3.5" />
                     )}
-                    <span>{upLoading === project.name ? '部署中' : '部署'}</span>
+                    <span>{deployTask && !deployTask.isDone && deployTask.name === project.name ? '部署中' : '部署'}</span>
                   </button>
                   <button
                     onClick={() => showDeleteConfirm(project.name)}

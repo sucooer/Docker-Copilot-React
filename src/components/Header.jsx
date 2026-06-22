@@ -4,7 +4,8 @@ import {
   LogOut,
   Server,
   DatabaseBackup,
-  Info
+  Info,
+  Layers
 } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle.jsx'
 import { UpdatePrompt } from './UpdatePrompt.jsx'
@@ -74,6 +75,11 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       id: '#images',
       label: '镜像',
       icon: Box,
+    },
+    {
+      id: '#compose',
+      label: 'Compose',
+      icon: Layers,
     },
     {
       id: '#backups',
@@ -365,6 +371,11 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
       id: '#images',
       label: '镜像',
       icon: Box,
+    },
+    {
+      id: '#compose',
+      label: 'Compose',
+      icon: Layers,
     },
     {
       id: '#backups',

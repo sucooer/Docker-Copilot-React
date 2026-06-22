@@ -11,7 +11,7 @@ import {
   X,
   Info
 } from 'lucide-react'
-import { containerAPI, progressAPI, imageAPI } from '../api/client.js'
+import { containerAPI, progressAPI, imageAPI, autoUpdateAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getImageLogo } from '../config/imageLogos.js'
@@ -1210,6 +1210,34 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
   const [currentContainer, setCurrentContainer] = useState(container)
   const fileInputRef = React.useRef(null)
   const [isUploadingIcon, setIsUploadingIcon] = useState(false)
+  const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(false)
+  const [autoUpdateInterval, setAutoUpdateInterval] = useState(360)
+  const [isSavingAutoUpdate, setIsSavingAutoUpdate] = useState(false)
+  const [autoUpdateLoaded, setAutoUpdateLoaded] = useState(false)
+  const [autoUpdateSaveMsg, setAutoUpdateSaveMsg] = useState('')
+
+  // 获取自动更新配置
+  React.useEffect(() => {
+    const loadAutoUpdate = async () => {
+      try {
+        const res = await autoUpdateAPI.list()
+        if (res.data.code === 200 || res.data.code === 0) {
+          const items = res.data.data || []
+          const shortId = container.id.substring(0, 12)
+          const item = items.find(i => i.containerId === shortId)
+          if (item) {
+            setAutoUpdateEnabled(item.enabled)
+            setAutoUpdateInterval(item.intervalMinutes)
+          }
+        }
+      } catch {
+        // ignore
+      } finally {
+        setAutoUpdateLoaded(true)
+      }
+    }
+    loadAutoUpdate()
+  }, [container.id])
 
   // 获取自定义图标配置
   const { data: customIcons = {} } = useQuery({
@@ -1458,6 +1486,37 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
       }
     }
   }
+  const handleAutoUpdateSave = async (enabled, interval) => {
+    try {
+      setIsSavingAutoUpdate(true)
+      setAutoUpdateSaveMsg('保存中...')
+      const shortId = container.id.substring(0, 12)
+      await autoUpdateAPI.update(shortId, enabled, interval)
+      setAutoUpdateSaveMsg('已保存')
+      setTimeout(() => setAutoUpdateSaveMsg(''), 2000)
+    } catch {
+      setAutoUpdateSaveMsg('保存失败')
+      setTimeout(() => setAutoUpdateSaveMsg(''), 2000)
+    } finally {
+      setIsSavingAutoUpdate(false)
+    }
+  }
+
+  const handleAutoUpdateToggle = async (enabled) => {
+    setAutoUpdateEnabled(enabled)
+    if (autoUpdateLoaded) {
+      await handleAutoUpdateSave(enabled, autoUpdateInterval)
+    }
+  }
+
+  const handleAutoUpdateIntervalChange = async (interval) => {
+    setAutoUpdateInterval(interval)
+    if (autoUpdateLoaded && autoUpdateEnabled) {
+      await handleAutoUpdateSave(autoUpdateEnabled, interval)
+    }
+  }
+
+
 
 
 
@@ -1666,6 +1725,50 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
             </p>
           </div>
         </div>
+
+        {/* 自动更新设置 */}
+        <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            自动更新
+            {autoUpdateSaveMsg && (
+              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                {autoUpdateSaveMsg}
+              </span>
+            )}
+          </h4>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-gray-600 dark:text-gray-400">启用自动更新</span>
+            <button
+              onClick={() => handleAutoUpdateToggle(!autoUpdateEnabled)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                autoUpdateEnabled ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  autoUpdateEnabled ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+          {autoUpdateEnabled && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400">检查频率</span>
+              <select
+                value={autoUpdateInterval}
+                onChange={(e) => handleAutoUpdateIntervalChange(Number(e.target.value))}
+                className="input text-sm py-1 px-2 w-28"
+              >
+                <option value="30">30 分钟</option>
+                <option value="60">1 小时</option>
+                <option value="360">6 小时</option>
+                <option value="720">12 小时</option>
+                <option value="1440">24 小时</option>
+              </select>
+            </div>
+          )}
+        </div>
+
 
         {/* 弹窗底部操作按钮 */}
         <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-700/30">

@@ -154,6 +154,13 @@ export const composeAPI = {
   up: (name) => apiClient.post(`/api/compose/${encodeURIComponent(name)}/up`),
 }
 
+// 自动更新相关API
+export const autoUpdateAPI = {
+  list: () => apiClient.get('/api/auto-update'),
+  update: (id, enabled, intervalMinutes) => apiClient.put(`/api/auto-update/${id}`, { enabled, intervalMinutes }),
+  run: () => apiClient.post('/api/auto-update/run'),
+}
+
 // 进度查询API
 export const progressAPI = {
   getProgress: (taskid) => apiClient.get(`/api/progress/${taskid}`),

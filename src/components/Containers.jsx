@@ -9,7 +9,8 @@ import {
   Calendar,
   Package,
   X,
-  Info
+  Info,
+  Trash2
 } from 'lucide-react'
 import { containerAPI, progressAPI, imageAPI, autoUpdateAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
@@ -219,6 +220,44 @@ export function Containers() {
       } else {
         console.error(`操作失败: ${error.response?.data?.msg || error.message}`)
       }
+    }
+  }
+
+  const confirmDeleteContainer = (containerId, containerName) => {
+    setConfirmModal({
+      isOpen: true,
+      title: '删除容器',
+      message: `确定要删除容器 "${containerName}" 吗？此操作不可恢复。`,
+      onConfirm: () => {
+        setConfirmModal({ isOpen: false })
+        handleDeleteContainer(containerId)
+      },
+      onCancel: () => setConfirmModal({ isOpen: false }),
+      type: 'danger',
+    })
+  }
+
+  const handleDeleteContainer = async (containerId) => {
+    try {
+      setContainerActions(prev => ({
+        ...prev,
+        [containerId]: { action: 'delete', loading: true }
+      }))
+      await containerAPI.deleteContainer(containerId)
+      setContainerActions(prev => {
+        const newState = { ...prev }
+        delete newState[containerId]
+        return newState
+      })
+      setSelectedContainer(null)
+      refetch()
+    } catch (error) {
+      setContainerActions(prev => {
+        const newState = { ...prev }
+        delete newState[containerId]
+        return newState
+      })
+      console.error('删除失败:', error.response?.data?.msg || error.message)
     }
   }
 
@@ -663,7 +702,7 @@ export function Containers() {
 
       {/* 自定义确认弹窗 */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -1191,6 +1230,7 @@ export function Containers() {
             onRename={handleRenameContainer}
             onUpdate={handleUpdateContainer}
             onAction={handleContainerAction}
+            onDelete={confirmDeleteContainer}
           />
         )
       }
@@ -1199,7 +1239,7 @@ export function Containers() {
 }
 
 // 容器详情弹窗组件
-function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction }) {
+function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction, onDelete }) {
   const queryClient = useQueryClient()
   const [name, setName] = useState(container.name)
   const [imageNameAndTag, setImageNameAndTag] = useState(container.usingImage)
@@ -1865,8 +1905,20 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
                   )}
                 </button>
               )}
+              <button
+                onClick={() => onDelete(container.id, container.name)}
+                disabled={isActionProcessing}
+                className={`flex-1 sm:flex-none px-2 sm:px-4 py-2 text-sm rounded-lg transition-colors flex items-center justify-center sm:justify-start gap-1 sm:gap-2 ${
+                  isActionProcessing
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-400'
+                    : 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700'
+                }`}
+                title="删除"
+              >
+                <Trash2 className="h-4 w-4 flex-shrink-0" />
+                <span>删除</span>
+              </button>
             </div>
-
 
           </div>
         </div>

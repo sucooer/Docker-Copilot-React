@@ -150,8 +150,7 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
             ? (isMobileMenuOpen ? "translate-x-0" : "-translate-x-full")
             : "translate-x-0",
           "max-h-screen overflow-y-auto",
-          // 手机模式距顶部导航栏下方，其他模式从顶部开始
-          windowWidth < 768 ? "top-14" : "top-0",
+          "top-0",
           "border-r border-gray-200 dark:border-gray-700"
         )}
       >

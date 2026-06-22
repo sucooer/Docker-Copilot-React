@@ -144,6 +144,16 @@ export const imageAPI = {
   },
 }
 
+// Compose 相关API
+export const composeAPI = {
+  list: () => apiClient.get('/api/compose'),
+  get: (name) => apiClient.get(`/api/compose/${encodeURIComponent(name)}`),
+  create: (name, content) => apiClient.post('/api/compose', { name, content }),
+  update: (name, content) => apiClient.put(`/api/compose/${encodeURIComponent(name)}`, { content }),
+  delete: (name) => apiClient.delete(`/api/compose/${encodeURIComponent(name)}`),
+  up: (name) => apiClient.post(`/api/compose/${encodeURIComponent(name)}/up`),
+}
+
 // 进度查询API
 export const progressAPI = {
   getProgress: (taskid) => apiClient.get(`/api/progress/${taskid}`),

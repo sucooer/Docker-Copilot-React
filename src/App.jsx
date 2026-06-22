@@ -3,6 +3,7 @@ import { Auth } from './components/Auth.jsx'
 import { Sidebar, MobileBottomNav } from './components/Header.jsx'
 import { Containers } from './components/Containers.jsx'
 import { Images } from './components/Images.jsx'
+import { Compose } from './components/Compose.jsx'
 import { Backups } from './components/Backups.jsx'
 import { Icons } from './components/Icons.jsx'
 import { About } from './components/About.jsx'
@@ -135,6 +136,8 @@ function AppContent() {
         return <Containers />
       case '#images':
         return <Images />
+      case '#compose':
+        return <Compose />
       case '#icons':
         return <Icons />
       case '#backups':

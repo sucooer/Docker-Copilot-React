@@ -6,6 +6,7 @@ import {
   DatabaseBackup,
   Info,
   Layers,
+  Bell,
   ChevronDown,
   ChevronRight
 } from 'lucide-react'
@@ -88,6 +89,11 @@ export function Sidebar({ activeTab, onTabChange, onLogout, isCollapsed = false,
       id: '#backups',
       label: '备份',
       icon: DatabaseBackup,
+    },
+    {
+      id: '#notify',
+      label: '通知',
+      icon: Bell,
     },
     {
       id: '#about',
@@ -421,6 +427,11 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
       id: '#backups',
       label: '备份',
       icon: DatabaseBackup,
+    },
+    {
+      id: '#notify',
+      label: '通知',
+      icon: Bell,
     },
     {
       id: '#about',

@@ -166,6 +166,13 @@ export const progressAPI = {
   getProgress: (taskid) => apiClient.get(`/api/progress/${taskid}`),
 }
 
+// 通知设置API
+export const notifyAPI = {
+  getConfig: () => apiClient.get('/api/notify/config'),
+  updateConfig: (config) => apiClient.put('/api/notify/config', config),
+  test: (channel) => apiClient.post('/api/notify/test', { channel }),
+}
+
 // GitHub API - 用于检查前端更新
 export const githubAPI = {
   /**

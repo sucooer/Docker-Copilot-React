@@ -433,11 +433,6 @@ export function MobileBottomNav({ activeTab, onTabChange, windowWidth = 1024 }) 
       label: '通知',
       icon: Bell,
     },
-    {
-      id: '#about',
-      label: '关于',
-      icon: Info,
-    },
   ]
 
   return (

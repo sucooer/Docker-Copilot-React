@@ -167,6 +167,13 @@ export const progressAPI = {
   getProgress: (taskid) => apiClient.get(`/api/progress/${taskid}`),
 }
 
+// 定时重启API
+export const restartScheduleAPI = {
+  list: () => apiClient.get('/api/restart-schedule'),
+  update: (id, enabled, intervalMinutes) => apiClient.put(`/api/restart-schedule/${id}`, { enabled, intervalMinutes }),
+  run: () => apiClient.post('/api/restart-schedule/run'),
+}
+
 // 通知设置API
 export const notifyAPI = {
   getConfig: () => apiClient.get('/api/notify/config'),

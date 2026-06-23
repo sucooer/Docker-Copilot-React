@@ -12,7 +12,7 @@ import {
   Info,
   Trash2
 } from 'lucide-react'
-import { containerAPI, progressAPI, imageAPI, autoUpdateAPI } from '../api/client.js'
+import { containerAPI, progressAPI, imageAPI, autoUpdateAPI, restartScheduleAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getImageLogo } from '../config/imageLogos.js'
@@ -1256,6 +1256,11 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
   const [autoUpdateLoaded, setAutoUpdateLoaded] = useState(false)
   const [autoUpdateSaveMsg, setAutoUpdateSaveMsg] = useState('')
 
+  const [restartScheduleEnabled, setRestartScheduleEnabled] = useState(false)
+  const [restartScheduleInterval, setRestartScheduleInterval] = useState(360)
+  const [restartScheduleLoaded, setRestartScheduleLoaded] = useState(false)
+  const [restartScheduleSaveMsg, setRestartScheduleSaveMsg] = useState('')
+
   // 获取自动更新配置
   React.useEffect(() => {
     const loadAutoUpdate = async () => {
@@ -1277,6 +1282,27 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
       }
     }
     loadAutoUpdate()
+  }, [container.id])
+
+  React.useEffect(() => {
+    const loadRestartSchedule = async () => {
+      try {
+        const res = await restartScheduleAPI.list()
+        if (res.data.code === 200 || res.data.code === 0) {
+          const items = res.data.data || []
+          const shortId = container.id.substring(0, 12)
+          const item = items.find(i => i.containerId === shortId)
+          if (item) {
+            setRestartScheduleEnabled(item.enabled)
+            setRestartScheduleInterval(item.intervalMinutes)
+          }
+        }
+      } catch {
+      } finally {
+        setRestartScheduleLoaded(true)
+      }
+    }
+    loadRestartSchedule()
   }, [container.id])
 
   // 获取自定义图标配置
@@ -1556,11 +1582,32 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
     }
   }
 
+  const handleRestartScheduleSave = async (enabled, interval) => {
+    try {
+      setRestartScheduleSaveMsg('保存中...')
+      const shortId = container.id.substring(0, 12)
+      await restartScheduleAPI.update(shortId, enabled, interval)
+      setRestartScheduleSaveMsg('已保存')
+      setTimeout(() => setRestartScheduleSaveMsg(''), 2000)
+    } catch {
+      setRestartScheduleSaveMsg('保存失败')
+      setTimeout(() => setRestartScheduleSaveMsg(''), 2000)
+    }
+  }
 
+  const handleRestartScheduleToggle = async (enabled) => {
+    setRestartScheduleEnabled(enabled)
+    if (restartScheduleLoaded) {
+      await handleRestartScheduleSave(enabled, restartScheduleInterval)
+    }
+  }
 
-
-
-
+  const handleRestartScheduleIntervalChange = async (interval) => {
+    setRestartScheduleInterval(interval)
+    if (restartScheduleLoaded && restartScheduleEnabled) {
+      await handleRestartScheduleSave(restartScheduleEnabled, interval)
+    }
+  }
 
   // 获取状态指示器颜色
   const getStatusIndicatorColor = (status) => {
@@ -1809,6 +1856,47 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
           )}
         </div>
 
+        {/* 定时重启设置 */}
+        <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            定时重启
+            {restartScheduleSaveMsg && (
+              <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
+                {restartScheduleSaveMsg}
+              </span>
+            )}
+          </h4>
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-gray-600 dark:text-gray-400">启用定时重启</span>
+            <button
+              onClick={() => handleRestartScheduleToggle(!restartScheduleEnabled)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                restartScheduleEnabled ? "bg-blue-600" : "bg-gray-300 dark:bg-gray-600"
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                restartScheduleEnabled ? "translate-x-6" : "translate-x-1"
+              }`} />
+            </button>
+          </div>
+          {restartScheduleEnabled && (
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 dark:text-gray-400">重启间隔</span>
+              <select
+                value={restartScheduleInterval}
+                onChange={(e) => handleRestartScheduleIntervalChange(Number(e.target.value))}
+                className="input text-sm py-1 px-2 w-28"
+              >
+                <option value="10">10 分钟</option>
+                <option value="30">30 分钟</option>
+                <option value="60">1 小时</option>
+                <option value="360">6 小时</option>
+                <option value="720">12 小时</option>
+                <option value="1440">24 小时</option>
+              </select>
+            </div>
+          )}
+        </div>
 
         {/* 弹窗底部操作按钮 */}
         <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-700/30">

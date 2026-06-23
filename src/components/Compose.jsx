@@ -437,6 +437,15 @@ services:
     }
   }, [project])
 
+  const editorRef = useRef(null)
+  const gutterRef = useRef(null)
+
+  const handleEditorScroll = useCallback(() => {
+    if (gutterRef.current && editorRef.current) {
+      gutterRef.current.scrollTop = editorRef.current.scrollTop
+    }
+  }, [])
+
   const handleSubmit = () => {
     if (!isEdit && !name.trim()) {
       setError('请输入项目名称')
@@ -489,12 +498,40 @@ services:
               <RefreshCw className="h-6 w-6 animate-spin text-primary-500" />
             </div>
           ) : (
-            <textarea
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              className="w-full h-96 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none"
-              spellCheck={false}
-            />
+            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-96">
+              <div
+                ref={gutterRef}
+                className="select-none text-right px-3 py-3 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-r border-gray-300 dark:border-gray-600 overflow-hidden"
+                style={{ minWidth: '3.5rem' }}
+              >
+                {content.split('\n').map((_, i) => (
+                  <div key={i} className="leading-6">{i + 1}</div>
+                ))}
+              </div>
+              <div className="relative flex-1">
+                <textarea
+                  ref={editorRef}
+                  value={content}
+                  onChange={e => setContent(e.target.value)}
+                  onScroll={handleEditorScroll}
+                  className="w-full min-h-full px-4 py-3 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white resize-none outline-none"
+                  style={{
+                    backgroundImage: `repeating-linear-gradient(
+                      90deg,
+                      transparent,
+                      transparent calc(2ch - 2px),
+                      rgba(150, 150, 150, 0.4) calc(2ch - 2px),
+                      rgba(150, 150, 150, 0.4) 2ch
+                    )`,
+                    tabSize: 2,
+                    MozTabSize: 2,
+                    lineHeight: '1.5rem',
+                  }}
+                  spellCheck={false}
+                  wrap="off"
+                />
+              </div>
+            </div>
           )}
         </div>
 

@@ -93,7 +93,8 @@ export const getImageLogo = (imageName, customLogos = {}) => {
   for (const [key, url] of Object.entries(builtInImageLogos)) {
     if (!key) continue;
     try {
-      if (baseImageName.includes(key) || simpleName.includes(key)) {
+      const keySimpleName = key.split('/').pop()
+      if (baseImageName.includes(key) || simpleName.includes(key) || keySimpleName === simpleName) {
         return url;
       }
     } catch (e) {

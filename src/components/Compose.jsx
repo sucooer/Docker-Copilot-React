@@ -520,15 +520,24 @@ services:
                   value={content}
                   onChange={e => setContent(e.target.value)}
                   onScroll={handleEditorScroll}
-                  className="w-full min-h-full px-4 py-3 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white resize-none outline-none"
+                  className="w-full min-h-full px-4 py-3 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono resize-none outline-none"
                   style={{
-                    backgroundImage: `repeating-linear-gradient(
-                      90deg,
-                      transparent,
-                      transparent calc(2ch - 2px),
-                      rgba(150, 150, 150, 0.4) calc(2ch - 2px),
-                      rgba(150, 150, 150, 0.4) 2ch
-                    )`,
+                    backgroundImage: `
+                      repeating-linear-gradient(
+                        90deg,
+                        transparent,
+                        transparent calc(1ch - 1px),
+                        rgba(150, 150, 150, 0.08) calc(1ch - 1px),
+                        rgba(150, 150, 150, 0.08) 1ch
+                      ),
+                      repeating-linear-gradient(
+                        90deg,
+                        transparent,
+                        transparent calc(2ch - 1px),
+                        rgba(150, 150, 150, 0.3) calc(2ch - 1px),
+                        rgba(150, 150, 150, 0.3) 2ch
+                      )
+                    `,
                     tabSize: 2,
                     MozTabSize: 2,
                     lineHeight: '1.5rem',

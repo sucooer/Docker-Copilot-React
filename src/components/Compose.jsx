@@ -349,8 +349,14 @@ export function Compose() {
                     <FileText className="h-5 w-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                    <h4 className="font-semibold text-gray-900 dark:text-white truncate flex items-center gap-1.5">
                       {project.name}
+                      {project.deployed && (
+                        <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded-full">
+                          <CheckCircle className="h-3 w-3" />
+                          已部署
+                        </span>
+                      )}
                     </h4>
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
                       docker-compose.yml

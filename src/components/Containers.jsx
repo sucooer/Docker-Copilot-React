@@ -1552,6 +1552,14 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
       }
     }
   }
+  const handleContainerNameClick = () => {
+    if (!currentContainer.ports || currentContainer.ports.length === 0) return
+    const port = currentContainer.ports.find(p => p.PublicPort)
+    if (!port) return
+    const hostname = window.location.hostname
+    const protocol = window.location.protocol === 'https:' ? 'https' : 'http'
+    window.open(`${protocol}://${hostname}:${port.PublicPort}`, '_blank')
+  }
   const handleAutoUpdateSave = async (enabled, interval) => {
     try {
       setIsSavingAutoUpdate(true)
@@ -1722,7 +1730,15 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
                   )}></div>
                 </div>
                 <div className="ml-3">
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      currentContainer.ports?.length > 0
+                        ? "text-primary-600 dark:text-primary-400 cursor-pointer hover:underline"
+                        : "text-gray-900 dark:text-white"
+                    )}
+                    onClick={handleContainerNameClick}
+                  >
                     {currentContainer.name}
                   </span>
                   <div className="flex items-center mt-1">

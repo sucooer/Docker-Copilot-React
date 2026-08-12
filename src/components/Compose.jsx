@@ -17,6 +17,38 @@ import {
 import { composeAPI, progressAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, drawSelection, highlightSpecialChars, Decoration, DecorationSet, ViewPlugin, ViewUpdate, WidgetType } from '@codemirror/view'
+import { EditorState } from '@codemirror/state'
+import { RangeSetBuilder } from '@codemirror/state'
+import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
+import { yaml } from '@codemirror/lang-yaml'
+import { indentUnit, syntaxHighlighting, defaultHighlightStyle, HighlightStyle, foldGutter, indentOnInput, bracketMatching, foldKeymap, getIndentUnit } from '@codemirror/language'
+import { tags } from '@lezer/highlight'
+
+const darkHighlightStyle = HighlightStyle.define([
+  { tag: tags.keyword, color: '#c084fc' },
+  { tag: tags.atom, color: '#67e8f9' },
+  { tag: tags.bool, color: '#67e8f9' },
+  { tag: tags.url, color: '#67e8f9', textDecoration: 'underline' },
+  { tag: tags.definition(tags.variableName), color: '#67e8f9' },
+  { tag: tags.string, color: '#86efac' },
+  { tag: tags.number, color: '#fbbf24' },
+  { tag: tags.special(tags.string), color: '#86efac' },
+  { tag: tags.comment, color: '#6b7280', fontStyle: 'italic' },
+  { tag: tags.variableName, color: '#93c5fd' },
+  { tag: tags.local(tags.variableName), color: '#93c5fd' },
+  { tag: tags.meta, color: '#9ca3af' },
+  { tag: tags.regexp, color: '#f87171' },
+  { tag: tags.tagName, color: '#f87171' },
+  { tag: tags.typeName, color: '#fbbf24' },
+  { tag: tags.className, color: '#fbbf24' },
+  { tag: tags.labelName, color: '#f87171' },
+  { tag: tags.propertyName, color: '#93c5fd' },
+  { tag: tags.operator, color: '#f9a8d4' },
+  { tag: tags.punctuation, color: '#9ca3af' },
+  { tag: tags.null, color: '#fbbf24' },
+])
+import { syntaxTree } from '@codemirror/language'
 
 export function Compose() {
   const queryClient = useQueryClient()
@@ -44,7 +76,7 @@ export function Compose() {
       }
       throw new Error(response.data.msg)
     },
-    refetchInterval: 10000,
+    refetchInterval: (showCreate || showEdit || showView || deployTask) ? false : 10000,
   })
 
   const handleCreate = async (name, content) => {
@@ -412,6 +444,240 @@ export function Compose() {
   )
 }
 
+class IndentGuideWidget extends WidgetType {
+  constructor(indentLevel) {
+    super()
+    this.indentLevel = indentLevel
+  }
+
+  toDOM() {
+    const container = document.createElement('span')
+    container.className = 'cm-indent-guides'
+    container.style.cssText = `
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+    `
+
+    const indentUnit = 2
+    for (let i = 1; i <= this.indentLevel; i++) {
+      const line = document.createElement('span')
+      line.className = 'cm-indent-guide'
+      line.style.cssText = `
+        position: absolute;
+        left: ${i * indentUnit}ch;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+      `
+      container.appendChild(line)
+    }
+
+    return container
+  }
+
+  eq(other) {
+    return this.indentLevel === other.indentLevel
+  }
+
+  get estimatedHeight() {
+    return -1
+  }
+}
+
+function indentGutterPlugin() {
+  return ViewPlugin.fromClass(
+    class {
+      decorations
+
+      constructor(view) {
+        this.decorations = this.buildDecorations(view)
+      }
+
+      update(update) {
+        if (update.docChanged || update.viewportChanged) {
+          this.decorations = this.buildDecorations(update.view)
+        }
+      }
+
+      buildDecorations(view) {
+        const builder = new RangeSetBuilder()
+        const indentUnit = getIndentUnit(view.state)
+
+        for (const { from, to } of view.visibleRanges) {
+          for (let pos = from; pos <= to; ) {
+            const line = view.state.doc.lineAt(pos)
+            const text = line.text
+            const indent = text.match(/^(\s*)/)[1].length
+            const indentLevel = Math.floor(indent / indentUnit)
+
+            if (indentLevel > 0) {
+              builder.add(
+                line.from,
+                line.from,
+                Decoration.widget({
+                  widget: new IndentGuideWidget(indentLevel),
+                  side: -1,
+                  block: false,
+                })
+              )
+            }
+
+            pos = line.to + 1
+          }
+        }
+
+        return builder.finish()
+      }
+    },
+    {
+      decorations: (v) => v.decorations,
+    }
+  )
+}
+
+function CodeMirrorEditor({ value, onChange }) {
+  const editorRef = useRef(null)
+  const viewRef = useRef(null)
+
+  useEffect(() => {
+    if (!editorRef.current) return
+
+    const updateListener = EditorView.updateListener.of(update => {
+      if (update.docChanged) {
+        onChange(update.state.doc.toString())
+      }
+    })
+
+    const lightTheme = EditorView.theme({
+      '&': { height: '100%', fontSize: '14px' },
+      '.cm-scroller': {
+        fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+        overflow: 'auto',
+      },
+      '.cm-content': { padding: '12px 0', position: 'relative' },
+      '.cm-gutters': {
+        backgroundColor: '#f9fafb',
+        borderRight: '1px solid #e5e7eb',
+        color: '#9ca3af',
+      },
+      '.cm-lineNumbers .cm-gutterElement': {
+        padding: '0 8px 0 12px',
+        minWidth: '3rem',
+        textAlign: 'right',
+      },
+      '.cm-foldGutter .cm-gutterElement': { padding: '0 4px', cursor: 'pointer' },
+      '.cm-activeLineGutter': { backgroundColor: '#f3f4f6' },
+      '.cm-activeLine': { backgroundColor: '#f3f4f6' },
+      '.cm-foldPlaceholder': {
+        backgroundColor: '#e5e7eb', border: 'none', color: '#6b7280', margin: '0 4px',
+      },
+      '.cm-indent-guides': { pointerEvents: 'none' },
+      '.cm-indent-guide': {
+        position: 'absolute',
+        top: '0',
+        bottom: '0',
+        width: '1px',
+        backgroundColor: '#e5e7eb',
+      },
+    }, { dark: false })
+
+    const darkTheme = EditorView.theme({
+      '&': { height: '100%', fontSize: '14px', backgroundColor: '#1f2937', color: '#e5e7eb' },
+      '.cm-scroller': {
+        fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+        overflow: 'auto',
+      },
+      '.cm-content': { padding: '12px 0', position: 'relative', color: '#e5e7eb' },
+      '.cm-gutters': {
+        backgroundColor: '#111827',
+        borderRight: '1px solid #374151',
+        color: '#6b7280',
+      },
+      '.cm-lineNumbers .cm-gutterElement': {
+        padding: '0 8px 0 12px',
+        minWidth: '3rem',
+        textAlign: 'right',
+      },
+      '.cm-foldGutter .cm-gutterElement': { padding: '0 4px', cursor: 'pointer' },
+      '.cm-activeLineGutter': { backgroundColor: '#1f2937' },
+      '.cm-activeLine': { backgroundColor: '#374151' },
+      '.cm-foldPlaceholder': {
+        backgroundColor: '#374151', border: 'none', color: '#9ca3af', margin: '0 4px',
+      },
+      '.cm-indent-guides': { pointerEvents: 'none' },
+      '.cm-indent-guide': {
+        position: 'absolute',
+        top: '0',
+        bottom: '0',
+        width: '1px',
+        backgroundColor: '#374151',
+      },
+    }, { dark: true })
+
+    const isDark = document.documentElement.classList.contains('dark')
+
+    const state = EditorState.create({
+      doc: value,
+      extensions: [
+        highlightSpecialChars(),
+        drawSelection(),
+        lineNumbers(),
+        highlightActiveLineGutter(),
+        foldGutter(),
+        history(),
+        indentOnInput(),
+        bracketMatching(),
+        indentUnit.of('  '),
+        keymap.of([
+          ...defaultKeymap,
+          ...historyKeymap,
+          ...foldKeymap,
+          indentWithTab,
+        ]),
+        yaml(),
+        updateListener,
+        isDark ? darkTheme : lightTheme,
+        isDark ? syntaxHighlighting(darkHighlightStyle) : syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+        EditorView.lineWrapping,
+        indentGutterPlugin(),
+      ],
+    })
+
+    viewRef.current = new EditorView({
+      state,
+      parent: editorRef.current,
+    })
+
+    const observer = new MutationObserver(() => {
+      const newIsDark = document.documentElement.classList.contains('dark')
+      viewRef.current.dispatch({
+        effects: EditorView.reconfigure.of(newIsDark ? darkTheme : lightTheme),
+      })
+    })
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+
+    return () => {
+      observer.disconnect()
+      viewRef.current?.destroy()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (viewRef.current) {
+      const currentValue = viewRef.current.state.doc.toString()
+      if (value !== currentValue) {
+        viewRef.current.dispatch({
+          changes: { from: 0, to: currentValue.length, insert: value },
+        })
+      }
+    }
+  }, [value])
+
+  return <div ref={editorRef} className="h-full" />
+}
+
 function ComposeEditorModal({ project, onSave, onClose }) {
   const [name, setName] = useState(project || '')
   const [content, setContent] = useState('')
@@ -442,15 +708,6 @@ services:
 `)
     }
   }, [project])
-
-  const editorRef = useRef(null)
-  const gutterRef = useRef(null)
-
-  const handleEditorScroll = useCallback(() => {
-    if (gutterRef.current && editorRef.current) {
-      gutterRef.current.scrollTop = editorRef.current.scrollTop
-    }
-  }, [])
 
   const handleSubmit = () => {
     if (!isEdit && !name.trim()) {
@@ -504,48 +761,8 @@ services:
               <RefreshCw className="h-6 w-6 animate-spin text-primary-500" />
             </div>
           ) : (
-            <div className="flex border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-96">
-              <div
-                ref={gutterRef}
-                className="select-none text-right px-3 py-3 text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900 border-r border-gray-300 dark:border-gray-600 overflow-hidden"
-                style={{ minWidth: '3.5rem' }}
-              >
-                {content.split('\n').map((_, i) => (
-                  <div key={i} className="leading-6">{i + 1}</div>
-                ))}
-              </div>
-              <div className="relative flex-1">
-                <textarea
-                  ref={editorRef}
-                  value={content}
-                  onChange={e => setContent(e.target.value)}
-                  onScroll={handleEditorScroll}
-                  className="w-full min-h-full px-4 py-3 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono resize-none outline-none"
-                  style={{
-                    backgroundImage: `
-                      repeating-linear-gradient(
-                        90deg,
-                        transparent,
-                        transparent calc(1ch - 1px),
-                        rgba(150, 150, 150, 0.08) calc(1ch - 1px),
-                        rgba(150, 150, 150, 0.08) 1ch
-                      ),
-                      repeating-linear-gradient(
-                        90deg,
-                        transparent,
-                        transparent calc(2ch - 1px),
-                        rgba(150, 150, 150, 0.3) calc(2ch - 1px),
-                        rgba(150, 150, 150, 0.3) 2ch
-                      )
-                    `,
-                    tabSize: 2,
-                    MozTabSize: 2,
-                    lineHeight: '1.5rem',
-                  }}
-                  spellCheck={false}
-                  wrap="off"
-                />
-              </div>
+            <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-96">
+              <CodeMirrorEditor value={content} onChange={setContent} />
             </div>
           )}
         </div>

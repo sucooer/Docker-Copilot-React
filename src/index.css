@@ -20,6 +20,32 @@
   }
 }
 
+/* CodeMirror 缩进参考线 */
+.cm-editor .cm-line {
+  position: relative;
+}
+
+.cm-editor .cm-indent-guide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: #e5e7eb;
+}
+
+.dark .cm-editor .cm-indent-guide {
+  background-color: #374151;
+}
+
+.cm-editor .cm-activeIndentRange .cm-indent-guide {
+  background-color: #9ca3af;
+  width: 2px;
+}
+
+.dark .cm-editor .cm-activeIndentRange .cm-indent-guide {
+  background-color: #6b7280;
+}
+
 @layer components {
 
   /* 手机端底部安全区域类 */

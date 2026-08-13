@@ -13,13 +13,14 @@ import {
   Eye,
   Terminal,
   Loader,
-  Upload
+  Upload,
+  WrapText
 } from 'lucide-react'
 import { composeAPI, progressAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, drawSelection, highlightSpecialChars, Decoration, DecorationSet, ViewPlugin, ViewUpdate, WidgetType } from '@codemirror/view'
-import { EditorState } from '@codemirror/state'
+import { EditorState, Compartment } from '@codemirror/state'
 import { RangeSetBuilder } from '@codemirror/state'
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
 import { yaml } from '@codemirror/lang-yaml'
@@ -538,9 +539,11 @@ function indentGutterPlugin() {
   )
 }
 
-function CodeMirrorEditor({ value, onChange }) {
+function CodeMirrorEditor({ value, onChange, wrap = true }) {
   const editorRef = useRef(null)
   const viewRef = useRef(null)
+  const wrapCompartmentRef = useRef(null)
+  const isDarkRef = useRef(false)
 
   useEffect(() => {
     if (!editorRef.current) return
@@ -617,7 +620,9 @@ function CodeMirrorEditor({ value, onChange }) {
       },
     }, { dark: true })
 
-    const isDark = document.documentElement.classList.contains('dark')
+    isDarkRef.current = document.documentElement.classList.contains('dark')
+    const wrapCompartment = new Compartment()
+    wrapCompartmentRef.current = wrapCompartment
 
     const state = EditorState.create({
       doc: value,
@@ -639,9 +644,9 @@ function CodeMirrorEditor({ value, onChange }) {
         ]),
         yaml(),
         updateListener,
-        isDark ? darkTheme : lightTheme,
-        isDark ? syntaxHighlighting(darkHighlightStyle) : syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
-        EditorView.lineWrapping,
+        isDarkRef.current ? darkTheme : lightTheme,
+        isDarkRef.current ? syntaxHighlighting(darkHighlightStyle) : syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+        wrapCompartment.of(wrap ? EditorView.lineWrapping : []),
         indentGutterPlugin(),
       ],
     })
@@ -676,6 +681,14 @@ function CodeMirrorEditor({ value, onChange }) {
     }
   }, [value])
 
+  useEffect(() => {
+    if (viewRef.current && wrapCompartmentRef.current) {
+      viewRef.current.dispatch({
+        effects: wrapCompartmentRef.current.reconfigure(wrap ? EditorView.lineWrapping : []),
+      })
+    }
+  }, [wrap])
+
   return <div ref={editorRef} className="h-full" />
 }
 
@@ -698,6 +711,7 @@ function ComposeEditorModal({ project, onSave, onClose }) {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [wrap, setWrap] = useState(true)
   const fileInputRef = useRef(null)
   const isEdit = !!project
 
@@ -795,6 +809,20 @@ services:
               <span className="text-xs text-gray-400">YAML 格式</span>
               <button
                 type="button"
+                onClick={() => setWrap(!wrap)}
+                className={cn(
+                  "inline-flex items-center space-x-1 text-xs rounded-md border px-2 py-1 transition-colors",
+                  wrap
+                    ? "text-primary-600 dark:text-primary-400 border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                    : "text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                )}
+                title={wrap ? '关闭自动换行' : '开启自动换行'}
+              >
+                <WrapText size={14} />
+                <span>自动换行</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
                 className="inline-flex items-center space-x-1 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
               >
@@ -810,7 +838,7 @@ services:
             </div>
           ) : (
             <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-96">
-              <CodeMirrorEditor value={content} onChange={setContent} />
+              <CodeMirrorEditor value={content} onChange={setContent} wrap={wrap} />
             </div>
           )}
         </div>

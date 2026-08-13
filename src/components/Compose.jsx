@@ -12,7 +12,8 @@ import {
   Edit,
   Eye,
   Terminal,
-  Loader
+  Loader,
+  Upload
 } from 'lucide-react'
 import { composeAPI, progressAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
@@ -683,7 +684,29 @@ function ComposeEditorModal({ project, onSave, onClose }) {
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const fileInputRef = useRef(null)
   const isEdit = !!project
+
+  const handleFileUpload = (file) => {
+    if (!file.name.match(/\.(ya?ml|txt)$/i)) {
+      setError('仅支持 .yml / .yaml / .txt 文件')
+      return
+    }
+    if (file.size > 1024 * 1024) {
+      setError('文件大小不能超过 1MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setContent(e.target.result)
+      if (!isEdit && !name.trim()) {
+        setName(file.name.replace(/\.(ya?ml|txt)$/i, ''))
+      }
+      setError(null)
+    }
+    reader.onerror = () => setError('文件读取失败')
+    reader.readAsText(file)
+  }
 
   React.useEffect(() => {
     if (isEdit) {
@@ -753,7 +776,17 @@ services:
 
           <div className="mb-2 flex items-center justify-between">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">docker-compose.yml</label>
-            <span className="text-xs text-gray-400">YAML 格式</span>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-gray-400">YAML 格式</span>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center space-x-1 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
+              >
+                <Upload size={14} />
+                <span>上传文件</span>
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -773,6 +806,17 @@ services:
             {isEdit ? '保存' : '创建'}
           </button>
         </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".yml,.yaml,.txt"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files[0]
+            if (file) handleFileUpload(file)
+            e.target.value = ''
+          }}
+        />
       </div>
     </div>
   )

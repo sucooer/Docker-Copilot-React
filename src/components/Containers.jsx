@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import {
   Play,
   Square,
@@ -10,7 +10,8 @@ import {
   Package,
   X,
   Info,
-  Trash2
+  Trash2,
+  ScrollText
 } from 'lucide-react'
 import { containerAPI, progressAPI, imageAPI, autoUpdateAPI, restartScheduleAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
@@ -87,6 +88,9 @@ export function Containers() {
     onCancel: null,
     type: 'info' // info, warning, danger
   })
+
+  // 日志查看弹窗状态
+  const [logModal, setLogModal] = useState(null)
 
 
 
@@ -221,6 +225,13 @@ export function Containers() {
         console.error(`操作失败: ${error.response?.data?.msg || error.message}`)
       }
     }
+  }
+
+  const handleViewLogs = (container) => {
+    setLogModal({
+      id: container.id,
+      name: container.names?.[0]?.replace(/^\//, '') || container.id.slice(0, 12),
+    })
   }
 
   const confirmDeleteContainer = (containerId, containerName) => {
@@ -749,6 +760,14 @@ export function Containers() {
         </div>
       )}
 
+      {logModal && (
+        <ContainerLogsModal
+          id={logModal.id}
+          name={logModal.name}
+          onClose={() => setLogModal(null)}
+        />
+      )}
+
       {/* 页面标题和操作 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0 pt-4 sm:pt-0">
         <div>
@@ -1200,6 +1219,15 @@ export function Containers() {
                               >
                                 <Upload className="h-4 w-4" />
                                 <span>更新</span>
+                              </button>
+
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleViewLogs(container) }}
+                                className="flex-1 flex items-center justify-center gap-1 px-1 py-1.5 text-teal-600 dark:text-teal-400 bg-white dark:bg-gray-800 hover:bg-teal-50 dark:hover:bg-teal-900/20 border border-gray-200 dark:border-gray-700 hover:border-teal-200 dark:hover:border-teal-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow active:scale-95 text-xs font-medium whitespace-nowrap"
+                                title="查看日志"
+                              >
+                                <ScrollText className="h-4 w-4" />
+                                <span>日志</span>
                               </button>
                             </>
                           )}
@@ -2025,6 +2053,100 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
             </div>
 
           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ContainerLogsModal({ id, name, onClose }) {
+  const [logs, setLogs] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [autoRefresh, setAutoRefresh] = useState(true)
+  const logsEndRef = useRef(null)
+
+  const fetchLogs = useCallback(async () => {
+    try {
+      const response = await containerAPI.getLogs(id, 500)
+      if (response.data.code === 200 || response.data.code === 0) {
+        setLogs(response.data.data?.logs || '')
+        setError(null)
+      } else {
+        setError(response.data.msg || '获取日志失败')
+      }
+    } catch (err) {
+      setError(err.response?.data?.msg || err.message || '获取日志失败')
+    } finally {
+      setLoading(false)
+    }
+  }, [id])
+
+  useEffect(() => {
+    fetchLogs()
+  }, [fetchLogs])
+
+  useEffect(() => {
+    if (!autoRefresh) return
+    const interval = setInterval(fetchLogs, 5000)
+    return () => clearInterval(interval)
+  }, [autoRefresh, fetchLogs])
+
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [logs])
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
+          <div className="flex items-center space-x-3">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">容器日志</h3>
+            <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">{name}</span>
+          </div>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => setAutoRefresh(!autoRefresh)}
+              className={cn(
+                "inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-lg border transition-colors",
+                autoRefresh
+                  ? "text-primary-600 dark:text-primary-400 border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/20"
+                  : "text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              )}
+              title={autoRefresh ? '自动刷新中' : '自动刷新已暂停'}
+            >
+              <RefreshCw className={cn("h-3.5 w-3.5", autoRefresh && "animate-spin")} />
+              <span>{autoRefresh ? '自动刷新' : '已暂停'}</span>
+            </button>
+            <button
+              onClick={fetchLogs}
+              className="inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              title="立即刷新"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              <span>刷新</span>
+            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 py-4 overflow-y-auto flex-1">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <RefreshCw className="h-6 w-6 animate-spin text-primary-500" />
+            </div>
+          ) : error ? (
+            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 rounded-lg text-red-800 dark:text-red-200">{error}</div>
+          ) : (
+            <pre className="w-full h-96 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-mono text-xs overflow-auto whitespace-pre-wrap break-all">{logs || '（暂无日志）'}</pre>
+          )}
+          <div ref={logsEndRef} />
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 flex justify-end flex-shrink-0">
+          <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-xl transition-colors">关闭</button>
         </div>
       </div>
     </div>

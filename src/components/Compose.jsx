@@ -679,6 +679,20 @@ function CodeMirrorEditor({ value, onChange }) {
   return <div ref={editorRef} className="h-full" />
 }
 
+function extractContainerName(content) {
+  const lines = content.split('\n')
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#')) continue
+    const match = trimmed.match(/^container_name\s*:\s*(.*)$/)
+    if (match) {
+      const value = match[1].trim().replace(/^["']|["']$/g, '')
+      if (value) return value
+    }
+  }
+  return null
+}
+
 function ComposeEditorModal({ project, onSave, onClose }) {
   const [name, setName] = useState(project || '')
   const [content, setContent] = useState('')
@@ -698,9 +712,10 @@ function ComposeEditorModal({ project, onSave, onClose }) {
     }
     const reader = new FileReader()
     reader.onload = (e) => {
-      setContent(e.target.result)
+      const text = e.target.result
+      setContent(text)
       if (!isEdit && !name.trim()) {
-        setName(file.name.replace(/\.(ya?ml|txt)$/i, ''))
+        setName(extractContainerName(text) || file.name.replace(/\.(ya?ml|txt)$/i, ''))
       }
       setError(null)
     }

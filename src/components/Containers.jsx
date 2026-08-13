@@ -11,7 +11,9 @@ import {
   X,
   Info,
   Trash2,
-  ScrollText
+  ScrollText,
+  Copy,
+  Check
 } from 'lucide-react'
 import { containerAPI, progressAPI, imageAPI, autoUpdateAPI, restartScheduleAPI } from '../api/client.js'
 import { cn } from '../utils/cn.js'
@@ -2064,7 +2066,30 @@ function ContainerLogsModal({ id, name, onClose }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [autoRefresh, setAutoRefresh] = useState(true)
+  const [copied, setCopied] = useState(false)
   const logsEndRef = useRef(null)
+
+  const handleCopy = async () => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(logs)
+      } else {
+        const textarea = document.createElement('textarea')
+        textarea.value = logs
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.focus()
+        textarea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textarea)
+      }
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      setError('复制失败: ' + (err.message || err))
+    }
+  }
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -2099,16 +2124,16 @@ function ContainerLogsModal({ id, name, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">容器日志</h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">{name}</span>
+        <div className="px-4 py-4 sm:px-6 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-center sm:justify-between gap-x-3 gap-y-2 flex-shrink-0">
+          <div className="flex items-center space-x-3 min-w-0">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white whitespace-nowrap">容器日志</h3>
+            <span className="text-sm text-gray-500 dark:text-gray-400 font-mono truncate">{name}</span>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <button
               onClick={() => setAutoRefresh(!autoRefresh)}
               className={cn(
-                "inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-lg border transition-colors",
+                "inline-flex items-center justify-center space-x-1 text-xs px-2 py-1 rounded-lg border transition-colors min-w-[60px]",
                 autoRefresh
                   ? "text-primary-600 dark:text-primary-400 border-primary-200 dark:border-primary-800 hover:bg-primary-50 dark:hover:bg-primary-900/20"
                   : "text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -2116,18 +2141,30 @@ function ContainerLogsModal({ id, name, onClose }) {
               title={autoRefresh ? '自动刷新中' : '自动刷新已暂停'}
             >
               <RefreshCw className={cn("h-3.5 w-3.5", autoRefresh && "animate-spin")} />
-              <span>{autoRefresh ? '自动刷新' : '已暂停'}</span>
+              <span>{autoRefresh ? '自动' : '暂停'}</span>
             </button>
             <button
               onClick={fetchLogs}
-              className="inline-flex items-center space-x-1 text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="inline-flex items-center justify-center space-x-1 text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors min-w-[60px]"
               title="立即刷新"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>刷新</span>
             </button>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
-              <X className="h-5 w-5" />
+            <button
+              onClick={handleCopy}
+              disabled={!logs}
+              className={cn(
+                "inline-flex items-center justify-center space-x-1 text-xs px-2 py-1 rounded-lg border transition-colors min-w-[60px]",
+                copied
+                  ? "text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20"
+                  : "text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700",
+                !logs && "opacity-50 cursor-not-allowed"
+              )}
+              title={copied ? '已复制' : '复制全部日志'}
+            >
+              {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+              <span>{copied ? '已复制' : '复制'}</span>
             </button>
           </div>
         </div>

@@ -1,76 +1,58 @@
 import axios from 'axios'
 
+// 清理旧版本遗留的配置键（老版本曾将 API 地址/token 存于 localStorage，
+// 迁移到同源 + HttpOnly Cookie 后这些键会破坏新认证方案或残留误导）
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem('api_base_url')
+    localStorage.removeItem('docker_copilot_token')
+  } catch {
+    // localStorage 不可用（隐私模式等）时静默跳过
+  }
+}
+
 // 动态获取 API 基础地址
-// 优先级：环境变量 > window.__API_BASE_URL > localStorage > 当前主机 > 默认值
+// 优先级：环境变量 > window.__API_BASE_URL > 当前主机 > 默认值
 function getAPIBaseURL() {
   // 1. 最高优先级：环境变量（构建时注入）
   if (import.meta.env.VITE_API_BASE_URL) {
-    console.log('Using build-time API URL:', import.meta.env.VITE_API_BASE_URL)
     return import.meta.env.VITE_API_BASE_URL
   }
 
   // 2. 检查全局变量（注入的配置）
   if (typeof window !== 'undefined' && window.__API_BASE_URL) {
-    console.log('Using injected API URL:', window.__API_BASE_URL)
     return window.__API_BASE_URL
   }
 
-  // 3. 检查 localStorage（用户保存的地址）
-  const savedURL = localStorage.getItem('api_base_url')
-  if (savedURL) {
-    console.log('Using localStorage API URL:', savedURL)
-    return savedURL
-  }
-
-  // 4. 使用当前主机
+  // 3. 使用当前主机（同源部署，Cookie 认证可用）
   if (typeof window !== 'undefined' && window.location.host) {
-    const currentHostURL = `${window.location.protocol}//${window.location.host}`
-    console.log('Using current host API URL:', currentHostURL)
-    return currentHostURL
+    return `${window.location.protocol}//${window.location.host}`
   }
 
-  // 5. 最后的默认值
-  const fallbackURL = 'http://localhost'
-  console.log('Using fallback API URL:', fallbackURL)
-  return fallbackURL
+  // 4. 最后的默认值
+  return 'http://localhost'
 }
 
 const API_BASE_URL = getAPIBaseURL()
 
 // 创建axios实例
+// withCredentials: 携带 HttpOnly Cookie 完成认证，token 不再存于 localStorage
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// 请求拦截器 - 添加认证token
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('docker_copilot_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
-)
-
 // 响应拦截器 - 处理认证过期
+// token 由 HttpOnly Cookie 承载，前端无法读取；收到 401 即视为未认证
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // 只在有token的情况下移除它
-      if (localStorage.getItem('docker_copilot_token')) {
-        localStorage.removeItem('docker_copilot_token')
-        // 触发自定义事件通知应用认证状态变化
-        window.dispatchEvent(new CustomEvent('authChange', { detail: { authenticated: false } }))
-      }
+      window.dispatchEvent(new CustomEvent('authChange', { detail: { authenticated: false } }))
     }
     return Promise.reject(error)
   }
@@ -85,6 +67,7 @@ export const authAPI = {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
+  logout: () => apiClient.post('/api/auth/logout'),
 }
 
 // 版本相关API
@@ -94,7 +77,7 @@ export const versionAPI = {
     if (!type) {
       return apiClient.get('/api/version')
     }
-    return apiClient.get(`/api/version?type=${type}`)
+    return apiClient.get(`/api/version?type=${encodeURIComponent(type)}`)
   },
   updateProgram: () => apiClient.put('/api/program'),
 }
@@ -102,37 +85,38 @@ export const versionAPI = {
 // 容器相关API
 export const containerAPI = {
   getContainers: () => apiClient.get('/api/containers'),
-  startContainer: (id) => apiClient.post(`/api/container/${id}/start`),
-  stopContainer: (id) => apiClient.post(`/api/container/${id}/stop`),
-  restartContainer: (id) => apiClient.post(`/api/container/${id}/restart`),
+  getContainer: (id) => apiClient.get(`/api/container/${encodeURIComponent(id)}`),
+  startContainer: (id) => apiClient.post(`/api/container/${encodeURIComponent(id)}/start`),
+  stopContainer: (id) => apiClient.post(`/api/container/${encodeURIComponent(id)}/stop`),
+  restartContainer: (id) => apiClient.post(`/api/container/${encodeURIComponent(id)}/restart`),
   getLogs: (id, tail = 200) => apiClient.get(`/api/container/${encodeURIComponent(id)}/logs?tail=${tail}`),
   renameContainer: (id, newName) => {
-    return apiClient.post(`/api/container/${id}/rename?newName=${encodeURIComponent(newName)}`)
+    return apiClient.post(`/api/container/${encodeURIComponent(id)}/rename?newName=${encodeURIComponent(newName)}`)
   },
   updateContainer: (id, containerName, imageNameAndTag, delOldContainer) => {
     const formData = new FormData()
     formData.append('containerName', containerName)
     formData.append('imageNameAndTag', imageNameAndTag)
     formData.append('delOldContainer', delOldContainer ? 'true' : 'false')
-    return apiClient.post(`/api/container/${id}/update`, formData, {
+    return apiClient.post(`/api/container/${encodeURIComponent(id)}/update`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
   },
   backupContainer: () => apiClient.get('/api/container/backup'),
   listBackups: () => apiClient.get('/api/container/listBackups'),
   restoreContainer: (filename) => {
-    return apiClient.post(`/api/container/backups/${filename}/restore`)
+    return apiClient.post(`/api/container/backups/${encodeURIComponent(filename)}/restore`)
   },
   deleteBackup: (filename) => apiClient.delete(`/api/container/backups?filename=${encodeURIComponent(filename)}`),
   backupToCompose: () => apiClient.get('/api/container/backup2compose'),
-  deleteContainer: (id) => apiClient.delete(`/api/container/${id}`),
+  deleteContainer: (id) => apiClient.delete(`/api/container/${encodeURIComponent(id)}`),
 }
 
 // 镜像相关API
 export const imageAPI = {
   getImages: () => apiClient.get('/api/images'),
   getIcons: () => apiClient.get('/api/icons'),
-  deleteImage: (id, force = false) => apiClient.delete(`/api/image/${id}?force=${force}`),
+  deleteImage: (id, force = false) => apiClient.delete(`/api/image/${encodeURIComponent(id)}?force=${force}`),
   uploadIcon: (file, imageName, containerName) => {
     const formData = new FormData()
     formData.append('file', file)

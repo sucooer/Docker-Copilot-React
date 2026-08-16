@@ -26,7 +26,6 @@ export function Auth({ onLogin }) {
     try {
       const response = await authAPI.login(key)
       if (response.data.code === 200) {
-        localStorage.setItem('docker_copilot_token', response.data.data.jwt)
         onLogin()
       } else {
         setError(response.data.msg || '认证失败')

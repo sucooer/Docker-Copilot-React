@@ -63,6 +63,17 @@ export function Icons() {
     }
   }
 
+  // 安全地在新窗口打开图标 URL：仅允许 http/https 或站内相对路径，
+  // 防止 javascript: 等协议被 window.open 利用
+  const safeOpenUrl = (url) => {
+    if (!url) return
+    if (/^https?:\/\//i.test(url) || url.startsWith('/')) {
+      window.open(url, '_blank')
+    } else {
+      console.warn('Blocked unsafe icon URL:', url)
+    }
+  }
+
   // 通用图标过滤函数
   const filterIconsList = (sourceIcons) => {
     let icons = Object.entries(sourceIcons || {})
@@ -229,7 +240,7 @@ export function Icons() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          window.open(url, '_blank')
+                          safeOpenUrl(url)
                         }}
                         className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors"
                         title="查看原图"
@@ -311,7 +322,7 @@ export function Icons() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          window.open(url, '_blank')
+                          safeOpenUrl(url)
                         }}
                         className="p-1 text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 rounded transition-colors"
                         title="查看原图"
@@ -399,7 +410,7 @@ export function Icons() {
 
                 <div className="flex gap-3 pt-4">
                   <button
-                    onClick={() => window.open(selectedIcon.url, '_blank')}
+                    onClick={() => safeOpenUrl(selectedIcon.url)}
                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     在新窗口打开

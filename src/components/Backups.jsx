@@ -112,9 +112,7 @@ export function Backups() {
       setError(null)
       setSuccess(null)
 
-      console.log('开始恢复备份:', filename)
       const response = await containerAPI.restoreContainer(filename)
-      console.log('恢复备份响应:', response.data)
 
       if (response.data && (response.data.code === 0 || response.data.code === 200)) {
         setSuccessModal({ isOpen: true, message: `备份 ${filename} 恢复成功` })
@@ -122,15 +120,6 @@ export function Backups() {
         setError(response.data?.msg || `备份 ${filename} 恢复失败`)
       }
     } catch (error) {
-      console.error('恢复备份详细错误:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        msg: error.response?.data?.msg,
-        code: error.response?.data?.code,
-        message: error.message,
-        url: error.config?.url
-      })
-
       let errorMsg = `备份 ${filename} 恢复失败`
 
       if (error.response?.status === 404) {
@@ -176,22 +165,10 @@ export function Backups() {
       setError(null)
       setSuccess(null)
 
-      console.log('🗑️ 开始删除备份:', filename)
-      console.log('📝 文件名编码前:', filename)
-      console.log('📝 文件名编码后:', encodeURIComponent(filename))
-
       const response = await containerAPI.deleteBackup(filename)
-
-      console.log('✅ 删除备份响应:', {
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-        data: response.data
-      })
 
       // 删除成功的各种情况
       if (response.status === 200 || response.status === 204 || response.status === 204) {
-        console.log('✨ 删除成功！')
         setSuccessModal({ isOpen: true, message: `备份 ${filename} 删除成功` })
         // 从列表中移除已删除的备份
         setBackups(backups.filter(backup => backup !== filename))
@@ -201,32 +178,21 @@ export function Backups() {
       // 检查响应体中的状态
       if (response.data) {
         if (response.data.code === 0 || response.data.code === 200 || response.data.code === 204) {
-          console.log('✨ 删除成功（从响应体）！')
           setSuccessModal({ isOpen: true, message: `备份 ${filename} 删除成功` })
           setBackups(backups.filter(backup => backup !== filename))
           return
         }
         if (response.data.msg) {
-          console.warn('⚠️ 响应中有错误消息:', response.data.msg)
           setError(response.data.msg)
           return
         }
       }
 
       // 如果走到这里，说明删除可能成功但响应格式不标准
-      console.log('⚠️ 响应格式不标准，假设删除成功')
       setSuccessModal({ isOpen: true, message: `备份 ${filename} 删除成功` })
       setBackups(backups.filter(backup => backup !== filename))
 
     } catch (error) {
-      console.error('❌ 删除备份失败:', {
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        message: error.message,
-        config: error.config?.url
-      })
-
       let errorMsg = `备份 ${filename} 删除失败`
 
       if (error.response?.status === 404) {

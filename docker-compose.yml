@@ -6,7 +6,7 @@ services:
     ports:
       - "12713:12713"
     environment:
-      - VITE_API_BASE_URL=http://backend:12712  # 使用服务名而不是 localhost
+      - BACKEND_URL=http://backend:12712  # nginx 反向代理后端地址（保持同源，Cookie 认证可用）
       - PORT=12713
     depends_on:
       - backend

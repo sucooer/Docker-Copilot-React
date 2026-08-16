@@ -78,6 +78,7 @@ export function Containers() {
   // 添加操作状态跟踪
   const [containerActions, setContainerActions] = useState({}) // 跟踪每个容器的操作状态
   const [updateTasks, setUpdateTasks] = useState({}) // 跟踪更新任务
+  const pollTimersRef = useRef(new Map()) // 跟踪轮询定时器，卸载时清理
   // 添加筛选状态
   const [filterStatus, setFilterStatus] = useState(null) // null 表示显示全部
 
@@ -94,6 +95,15 @@ export function Containers() {
   // 日志查看弹窗状态
   const [logModal, setLogModal] = useState(null)
 
+  // 组件卸载时清理所有轮询定时器
+  useEffect(() => {
+    const timers = pollTimersRef.current
+    return () => {
+      timers.forEach(timer => clearTimeout(timer))
+      timers.clear()
+    }
+  }, [])
+
 
 
   // 使用React Query获取容器列表
@@ -102,7 +112,6 @@ export function Containers() {
     queryFn: async () => {
       const response = await containerAPI.getContainers()
       if (response.data.code === 200 || response.data.code === 0) {
-        console.log('容器数据:', response.data.data)
         return response.data.data || []
       } else {
         throw new Error(response.data.msg)
@@ -115,19 +124,16 @@ export function Containers() {
   const { data: customIcons = {} } = useQuery({
     queryKey: ['customIcons'],
     queryFn: async () => {
-      console.log('[Debug] 开始从服务器获取图标配置...')
       try {
         const response = await imageAPI.getIcons()
-        console.log('[Debug] 图标API响应:', response.data)
         if (response.data.code === 200 || response.data.code === 0) {
           const icons = response.data.data || {}
-          console.log('[Debug] 获取到的图标数据:', icons)
           // update localStorage
           localStorage.setItem('docker_copilot_image_logos', JSON.stringify(icons))
           return icons
         }
-      } catch (err) {
-        console.error('[Debug] 获取图标失败:', err)
+      } catch {
+        // 图标获取失败时静默处理
       }
       return {}
     },
@@ -207,25 +213,43 @@ export function Containers() {
       })
 
       // 延迟刷新以获取最新数据
-      setTimeout(() => {
+      const refetchTimer = setTimeout(() => {
         refetch()
+        pollTimersRef.current.delete(`refetch-${containerId}`)
       }, 1500)
+      pollTimersRef.current.set(`refetch-${containerId}`, refetchTimer)
 
     } catch (error) {
       console.error('操作失败:', error)
-      // 清除操作状态
-      setContainerActions(prev => {
-        const newState = { ...prev }
-        delete newState[containerId]
-        return newState
-      })
-
-      // 增加超时错误的处理
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        console.error(`操作超时，请稍后手动刷新页面查看操作结果`)
-      } else {
-        console.error(`操作失败: ${error.response?.data?.msg || error.message}`)
-      }
+      // 显示错误状态给用户，而非静默清除
+      const errorMsg = error.code === 'ECONNABORTED' || error.message.includes('timeout')
+        ? '操作超时，请稍后重试'
+        : error.response?.data?.msg || error.message || '操作失败'
+      setContainerActions(prev => ({
+        ...prev,
+        [containerId]: {
+          action,
+          loading: false,
+          error: errorMsg
+        }
+      }))
+      // 8秒后自动清除错误状态
+      const clearKey = `error-clear-${containerId}`
+      const prevTimer = pollTimersRef.current.get(clearKey)
+      if (prevTimer) clearTimeout(prevTimer)
+      const clearTimer = setTimeout(() => {
+        setContainerActions(prev => {
+          const curr = prev[containerId]
+          if (curr && !curr.loading && curr.error) {
+            const newState = { ...prev }
+            delete newState[containerId]
+            return newState
+          }
+          return prev
+        })
+        pollTimersRef.current.delete(clearKey)
+      }, 8000)
+      pollTimersRef.current.set(clearKey, clearTimer)
     }
   }
 
@@ -512,18 +536,13 @@ export function Containers() {
   const pollProgress = async (containerId, taskID) => {
     const maxAttempts = 60 // 最多轮询60次 (2分钟)
     let attempts = 0
-    let pollTimer = null
 
     const clearPollState = () => {
-      if (pollTimer) {
-        clearTimeout(pollTimer)
-        pollTimer = null
+      const timer = pollTimersRef.current.get(containerId)
+      if (timer) {
+        clearTimeout(timer)
+        pollTimersRef.current.delete(containerId)
       }
-      setContainerActions(prev => {
-        const newState = { ...prev }
-        delete newState[containerId]
-        return newState
-      })
       setUpdateTasks(prev => {
         const newState = { ...prev }
         delete newState[containerId]
@@ -531,11 +550,31 @@ export function Containers() {
       })
     }
 
+    const setErrorState = (errorMsg) => {
+      setContainerActions(prev => ({
+        ...prev,
+        [containerId]: {
+          action: 'update',
+          loading: false,
+          error: errorMsg
+        }
+      }))
+      // 8秒后自动清除错误状态
+      const clearTimer = setTimeout(() => {
+        pollTimersRef.current.delete(containerId)
+        setContainerActions(prev => {
+          const newState = { ...prev }
+          delete newState[containerId]
+          return newState
+        })
+      }, 8000)
+      pollTimersRef.current.set(`err-${containerId}`, clearTimer)
+    }
+
     const poll = async () => {
       try {
         attempts++
         const response = await progressAPI.getProgress(taskID)
-        console.log(`进度查询[${attempts}/${maxAttempts}]:`, response.data)
 
         const data = response.data
 
@@ -557,12 +596,10 @@ export function Containers() {
         } else if (data.data?.percent !== undefined) {
           percentage = Math.min(100, Math.max(0, parseFloat(data.data.percent)))
         } else {
-          // 尝试从进度消息中提取百分比
           const percentMatch = progressMsg.match(/(\d+(?:\.\d+)?)\s*%/)
           if (percentMatch) {
             percentage = Math.min(100, Math.max(0, parseFloat(percentMatch[1])))
           } else {
-            // 根据轮询次数估算进度
             percentage = Math.min(95, (attempts / maxAttempts) * 100)
           }
         }
@@ -587,23 +624,21 @@ export function Containers() {
         const isCompleted = isDone && !isFailed
 
         if (isCompleted) {
-          // 任务完成 - 立即停止轮询
-          console.log('容器更新完成，停止轮询')
           clearPollState()
+          setContainerActions(prev => {
+            const newState = { ...prev }
+            delete newState[containerId]
+            return newState
+          })
           await refetch()
-          console.log('✅ 容器更新完成!')
-          return // 确保不再继续执行
+          return
         }
 
         if (isFailed) {
-          // 任务失败 - 立即停止轮询
-          console.log('容器更新失败，停止轮询')
           clearPollState()
-          // 添加更详细的错误信息
           const errorMsg = data.data?.error || data.data?.message || data.msg || '更新失败'
-          console.error(`❌ 更新失败: ${errorMsg}`)
-
-          return // 确保不再继续执行
+          setErrorState(errorMsg)
+          return
         }
 
         // 更新容器操作状态，显示进度
@@ -619,18 +654,16 @@ export function Containers() {
 
         // 继续轮询
         if (attempts < maxAttempts) {
-          pollTimer = setTimeout(poll, 2000) // 2秒后再次查询
+          const timer = setTimeout(poll, 2000)
+          pollTimersRef.current.set(containerId, timer)
         } else {
           clearPollState()
-          console.error('⏱️ 更新超时，请检查容器状态')
-
+          setErrorState('更新超时，请检查容器状态')
         }
       } catch (error) {
         console.error('查询进度失败:', error)
         clearPollState()
-        console.error(`❌ 更新失败: ${error.response?.data?.msg || error.message}`)
-        // 显示网络错误或其他异常情况的友好提示
-
+        setErrorState(error.response?.data?.msg || error.message || '更新失败')
       }
     }
 
@@ -1146,7 +1179,12 @@ export function Containers() {
 
                           {/* 统一高度的信息行 - 显示运行时间或状态 */}
                           <div className="h-5 mt-1">
-                            {containerActions[container.id]?.loading && containerActions[container.id]?.progress ? (
+                            {containerActions[container.id]?.error ? (
+                              <p role="alert" className="text-xs text-red-600 dark:text-red-400 truncate flex items-center gap-1">
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-red-500 flex-shrink-0"></span>
+                                <span>{containerActions[container.id].error}</span>
+                              </p>
+                            ) : containerActions[container.id]?.loading && containerActions[container.id]?.progress ? (
                               <p className="text-xs text-blue-600 dark:text-blue-400 truncate flex items-center gap-1">
                                 <RefreshCw className="h-3 w-3 animate-spin flex-shrink-0" />
                                 <span>{containerActions[container.id].progress}</span>
@@ -1355,14 +1393,13 @@ function ContainerDetailModal({ container, onClose, onRename, onUpdate, onAction
     setCurrentContainer(container)
   }, [container])
 
-  // 实时更新容器状态
+  // 实时更新容器状态（轻量单容器查询，避免 3s 全量轮询）
   React.useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const response = await containerAPI.getContainers();
-        if (response.data.code === 0) {
-          const containers = response.data.data;
-          const updatedContainer = containers.find(c => c.id === container.id);
+        const response = await containerAPI.getContainer(container.id);
+        if (response.data.code === 0 || response.data.code === 200) {
+          const updatedContainer = response.data.data;
           if (updatedContainer) {
             // 检查是否有镜像图标
             const imageLogos = JSON.parse(localStorage.getItem('docker_copilot_image_logos') || '{}');

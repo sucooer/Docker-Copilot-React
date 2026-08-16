@@ -114,15 +114,12 @@ export function useVersionCheck() {
     staleTime: 30000 // 30秒内不重新请求
   })
 
-  // 更新后端
+  // 更新后端（后端异步执行下载/安装，完成后自动重启容器拉起新版本）
   const updateBackend = useCallback(async () => {
     try {
       await versionAPI.updateProgram()
       setShowUpdatePrompt(true)
-      // 3秒后自动刷新
-      setTimeout(() => {
-        window.location.reload()
-      }, 3000)
+      alert('更新已开始，程序将在下载并安装完成后自动重启')
     } catch (error) {
       console.error('后端更新失败:', error)
       alert('后端更新失败，请手动重启应用')

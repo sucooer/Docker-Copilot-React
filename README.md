@@ -203,6 +203,12 @@ Made with ❤️ for Docker lovers
 
 Docker 容器管理前端应用
 
+## 🔒 安全说明（v1.3.0+）
+
+- 登录凭证改为 **HttpOnly + SameSite=Strict Cookie**，不再写入 `localStorage`，恶意站点无法窃取 token 调用后端破坏性接口。
+- 前端容器通过 **nginx 同源反向代理** 访问后端 `/api`，保证 Cookie 认证生效。
+- 访问入口固定为 **http://<宿主机>:12713**，请勿直接通过前端直连后端跨域部署（跨域时 Strict Cookie 不会发送）。
+
 ## 使用 Docker 运行
 
 ### 基本运行命令
@@ -213,11 +219,13 @@ docker run -d \
   --restart always \
   --network bridge \
   -p 12713:12713 \
-  -e VITE_API_BASE_URL=http://192.168.50.4:12712 \
+  -e BACKEND_URL=http://192.168.50.4:12712 \
   -e NODE_ENV=production \
   -v /vol1/1000/DSpace/DockerCopilot/DCF:/app/src/config:rw \
   dongshull/docker-copilot-frontend:latest
 ```
+
+`BACKEND_URL` 为后端地址，nginx 会将本容器的 `/api` 与 `/src/config/image/` 反向代理到该地址（旧环境变量 `VITE_API_BASE_URL` 仍兼容，作为后备读取）。
 
 ### 使用 Docker Compose
 
@@ -235,7 +243,7 @@ services:
     ports:
       - "12713:12713"
     environment:
-      - VITE_API_BASE_URL=http://192.168.50.4:12712
+      - BACKEND_URL=http://192.168.50.4:12712
       - NODE_ENV=production
     volumes:
       - /vol1/1000/DSpace/DockerCopilot/DCF:/app/src/config:rw

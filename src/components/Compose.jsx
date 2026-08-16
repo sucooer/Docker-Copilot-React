@@ -81,10 +81,10 @@ export function Compose() {
     refetchInterval: (showCreate || showEdit || showView || deployTask) ? false : 10000,
   })
 
-  const handleCreate = async (name, content) => {
+  const handleCreate = async (name, content, envContent) => {
     try {
       setError(null)
-      const response = await composeAPI.create(name, content)
+      const response = await composeAPI.create(name, content, envContent)
       if (response.data.code === 200 || response.data.code === 0) {
         setShowCreate(false)
         setSuccess(`Compose 项目 "${name}" 创建成功`)
@@ -97,10 +97,10 @@ export function Compose() {
     }
   }
 
-  const handleUpdate = async (name, content) => {
+  const handleUpdate = async (name, content, envContent) => {
     try {
       setError(null)
-      const response = await composeAPI.update(name, content)
+      const response = await composeAPI.update(name, content, envContent)
       if (response.data.code === 200 || response.data.code === 0) {
         setShowEdit(null)
         setSuccess(`Compose 文件 "${name}" 更新成功`)
@@ -262,7 +262,7 @@ export function Compose() {
       {(showCreate || showEdit) && (
         <ComposeEditorModal
           project={showEdit}
-          onSave={showCreate ? handleCreate : (name, content) => handleUpdate(showEdit, content)}
+          onSave={showCreate ? handleCreate : (name, content, envContent) => handleUpdate(showEdit, content, envContent)}
           onClose={() => { setShowCreate(false); setShowEdit(null) }}
         />
       )}
@@ -385,6 +385,11 @@ export function Compose() {
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 dark:text-white truncate flex items-center gap-1.5">
                       {project.name}
+                      {project.hasEnv && (
+                        <span className="inline-flex items-center text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded-full">
+                          .env
+                        </span>
+                      )}
                       {project.deployed && (
                         <span className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-1.5 py-0.5 rounded-full">
                           <CheckCircle className="h-3 w-3" />
@@ -709,10 +714,13 @@ function extractContainerName(content) {
 function ComposeEditorModal({ project, onSave, onClose }) {
   const [name, setName] = useState(project || '')
   const [content, setContent] = useState('')
+  const [envContent, setEnvContent] = useState('')
+  const [activeTab, setActiveTab] = useState('compose')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [wrap, setWrap] = useState(true)
   const fileInputRef = useRef(null)
+  const envFileInputRef = useRef(null)
   const isEdit = !!project
 
   const handleFileUpload = (file) => {
@@ -737,12 +745,27 @@ function ComposeEditorModal({ project, onSave, onClose }) {
     reader.readAsText(file)
   }
 
+  const handleEnvFileUpload = (file) => {
+    if (file.size > 1024 * 1024) {
+      setError('文件大小不能超过 1MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      setEnvContent(e.target.result)
+      setError(null)
+    }
+    reader.onerror = () => setError('文件读取失败')
+    reader.readAsText(file)
+  }
+
   React.useEffect(() => {
     if (isEdit) {
       setLoading(true)
       composeAPI.get(project).then(res => {
         if (res.data.code === 200 || res.data.code === 0) {
           setContent(res.data.data?.content || '')
+          setEnvContent(res.data.data?.envContent || '')
         }
       }).catch(err => {
         setError(err.response?.data?.msg || err.message || '加载失败')
@@ -770,7 +793,7 @@ services:
       setError('请输入 Compose 内容')
       return
     }
-    onSave(name.trim(), content)
+    onSave(name.trim(), content, envContent)
   }
 
   return (
@@ -803,10 +826,36 @@ services:
             </div>
           )}
 
-          <div className="mb-2 flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">docker-compose.yml</label>
-            <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-400">YAML 格式</span>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('compose')}
+                className={cn(
+                  "px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors",
+                  activeTab === 'compose'
+                    ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                )}
+              >
+                docker-compose.yml
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('env')}
+                className={cn(
+                  "px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors",
+                  activeTab === 'env'
+                    ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                )}
+              >
+                .env
+                {envContent && <span className="ml-1 inline-block w-1.5 h-1.5 rounded-full bg-green-500"></span>}
+              </button>
+            </div>
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <span className="hidden sm:inline text-xs text-gray-400">YAML 格式</span>
               <button
                 type="button"
                 onClick={() => setWrap(!wrap)}
@@ -819,15 +868,15 @@ services:
                 title={wrap ? '关闭自动换行' : '开启自动换行'}
               >
                 <WrapText size={14} />
-                <span>自动换行</span>
+                <span className="hidden sm:inline">自动换行</span>
               </button>
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => activeTab === 'compose' ? fileInputRef.current?.click() : envFileInputRef.current?.click()}
                 className="inline-flex items-center space-x-1 text-xs text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors"
               >
                 <Upload size={14} />
-                <span>上传文件</span>
+                <span className="hidden sm:inline">上传文件</span>
               </button>
             </div>
           </div>
@@ -838,7 +887,11 @@ services:
             </div>
           ) : (
             <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden h-96">
-              <CodeMirrorEditor value={content} onChange={setContent} wrap={wrap} />
+              {activeTab === 'compose' ? (
+                <CodeMirrorEditor value={content} onChange={setContent} wrap={wrap} />
+              ) : (
+                <CodeMirrorEditor value={envContent} onChange={setEnvContent} wrap={wrap} />
+              )}
             </div>
           )}
         </div>
@@ -860,6 +913,17 @@ services:
             e.target.value = ''
           }}
         />
+        <input
+          ref={envFileInputRef}
+          type="file"
+          accept=".env,.txt"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files[0]
+            if (file) handleEnvFileUpload(file)
+            e.target.value = ''
+          }}
+        />
       </div>
     </div>
   )
@@ -867,6 +931,8 @@ services:
 
 function ComposeViewModal({ name, onClose }) {
   const [content, setContent] = useState('')
+  const [envContent, setEnvContent] = useState('')
+  const [activeTab, setActiveTab] = useState('compose')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -874,6 +940,7 @@ function ComposeViewModal({ name, onClose }) {
     composeAPI.get(name).then(res => {
       if (res.data.code === 200 || res.data.code === 0) {
         setContent(res.data.data?.content || '')
+        setEnvContent(res.data.data?.envContent || '')
       } else {
         setError(res.data.msg || '加载失败')
       }
@@ -886,9 +953,35 @@ function ComposeViewModal({ name, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center flex-shrink-0">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-            {name} - docker-compose.yml
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">{name}</h3>
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => setActiveTab('compose')}
+                className={cn(
+                  "px-3 py-1 text-sm font-medium rounded-lg transition-colors",
+                  activeTab === 'compose'
+                    ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                    : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                )}
+              >
+                docker-compose.yml
+              </button>
+              {envContent && (
+                <button
+                  onClick={() => setActiveTab('env')}
+                  className={cn(
+                    "px-3 py-1 text-sm font-medium rounded-lg transition-colors",
+                    activeTab === 'env'
+                      ? "bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+                      : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  )}
+                >
+                  .env
+                </button>
+              )}
+            </div>
+          </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-500">
             <X className="h-5 w-5" />
           </button>
@@ -901,7 +994,9 @@ function ComposeViewModal({ name, onClose }) {
           ) : error ? (
             <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 rounded-lg text-red-800 dark:text-red-200">{error}</div>
           ) : (
-            <pre className="w-full h-96 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono text-sm overflow-auto whitespace-pre-wrap">{content || '（空）'}</pre>
+            <pre className="w-full h-96 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white font-mono text-sm overflow-auto whitespace-pre-wrap">
+              {activeTab === 'compose' ? (content || '（空）') : (envContent || '（无 .env 文件）')}
+            </pre>
           )}
         </div>
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30 flex justify-end flex-shrink-0">

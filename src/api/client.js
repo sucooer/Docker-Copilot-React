@@ -134,8 +134,8 @@ export const imageAPI = {
 export const composeAPI = {
   list: () => apiClient.get('/api/compose'),
   get: (name) => apiClient.get(`/api/compose/${encodeURIComponent(name)}`),
-  create: (name, content) => apiClient.post('/api/compose', { name, content }),
-  update: (name, content) => apiClient.put(`/api/compose/${encodeURIComponent(name)}`, { content }),
+  create: (name, content, envContent) => apiClient.post('/api/compose', { name, content, envContent }),
+  update: (name, content, envContent) => apiClient.put(`/api/compose/${encodeURIComponent(name)}`, { content, envContent }),
   delete: (name) => apiClient.delete(`/api/compose/${encodeURIComponent(name)}`),
   up: (name) => apiClient.post(`/api/compose/${encodeURIComponent(name)}/up`),
 }

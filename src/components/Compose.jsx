@@ -549,13 +549,18 @@ function CodeMirrorEditor({ value, onChange, wrap = true }) {
   const viewRef = useRef(null)
   const wrapCompartmentRef = useRef(null)
   const isDarkRef = useRef(false)
+  const onChangeRef = useRef(onChange)
+
+  useEffect(() => {
+    onChangeRef.current = onChange
+  })
 
   useEffect(() => {
     if (!editorRef.current) return
 
     const updateListener = EditorView.updateListener.of(update => {
       if (update.docChanged) {
-        onChange(update.state.doc.toString())
+        onChangeRef.current(update.state.doc.toString())
       }
     })
 
